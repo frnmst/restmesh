@@ -1,0 +1,158 @@
+# SPDX-FileCopyrightText: 2026-2026 Franco Masotti (See /README.md)
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+[build-system]
+requires = ["hatchling >= 1.30"]
+build-backend = "hatchling.build"
+
+[project]
+name = "restmesh"
+version = "0.1.0"
+authors = [
+    { name = "Franco Masotti", email = "franco.masotti@tutanota.com" },
+]
+description = "A stateless thread-safe REST API for Meshtastic"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICEN[CS]ES/*.txt"]
+keywords = [
+    "meshtastic",
+    "rest-api",
+    "fastapi",
+    "mesh",
+    "lora",
+    "mesh-network",
+    "off-grid",
+    "iot",
+    "http-server",
+    "automation",
+    "python-meshtastic"
+]
+requires-python = ">=3.11"
+dependencies = [
+    "meshtastic>=2.7,<2.8",
+    "fastapi[standard]>=0,<1"
+]
+
+classifiers = [
+    # How mature is this project? Common values are
+    #   3 - Alpha
+    #   4 - Beta
+    #   5 - Production/Stable
+    "Development Status :: 3 - Alpha",
+
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+
+    "Framework :: FastAPI",
+    "Framework :: AsyncIO",
+
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+
+    "Operating System :: OS Independent",
+
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+
+    "Topic :: Communications :: Chat",
+    "Topic :: Communications :: Ham Radio",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+[project.urls]
+Homepage = "https://codeberg.org/frnmst/restmesh"
+Documentation = "https://codeberg.org/frnmst/restmesh"
+Repository = "https://codeberg.org/frnmst/restmesh.git"
+Issues = "https://codeberg.org/frnmst/restmesh/issues"
+Changelog = "https://codeberg.org/frnmst/restmesh/README.md"
+
+[dependency-groups]
+# TOX.
+test = [
+    "pytest>=9,<10",
+    "httpx2>=2,<3"
+]
+
+[project.optional-dependencies]
+dev = [
+    # Integrations.
+    "apprise>=1,<2",
+
+    # Unit tests.
+    "pytest>=9,<10",
+    "httpx2>=2,<3",
+    "tox>=4,<5",
+
+    # Standard development.
+    "pre-commit>=4,<5",
+    "pip-tools",
+    "pip-audit",
+    "build",
+    "twine",
+    "hatchling",
+]
+
+[project.scripts]
+restmesh = "restmesh.main:cli"
+
+
+[tool.tox]
+env_list = [
+    "py3.11",
+    "py3.12",
+    "py3.13",
+    "py3.14t"
+]
+
+[tool.tox.env_run_base]
+description = "Run pytest under {base_python}"
+dependency_groups = ["test"]
+commands = [["pytest", "{posargs}"]]
+
+[tool.pytest]
+minversion = "9.0"
+addopts = ["-ra", "-v", "--capture=no"]
+
+[tool.fastapi]
+entrypoint = "restmesh.main:app"
+
+[tool.hatch.build.targets.sdist]
+reproducible = true
+include = [
+    "src/restmesh",
+    "README.md",
+    "LICENSES/*.txt"
+]
+exclude = [
+    "src/restmesh/*test*.py"
+]
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true
+reproducible = true
+packages = ["src/restmesh"]
+exclude = [
+    "src/restmesh/*test*.py"
+]
+
+[tool.hatch.build.targets.wheel.sources]
+"src" = ""
+
+[tool.bandit]
+skips=[
+    "B404",
+    "B506",
+    "B410",
+    "B603",
+    "B324",
+    "B101",
+]
+
+[tool.commitizen]
+name = "cz_gitmoji"

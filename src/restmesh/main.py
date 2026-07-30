@@ -410,7 +410,7 @@ async def apprise_gateway_adapter_send_text_node(
     data_types.truncated_message.set(False)
 
     packet, _ = await meshtastic_send_text(app=app,
-                                           text=payload.text,
+                                           text=payload.message,
                                            destination_id=node_target,
                                            channel_index=0,
                                            want_ack=payload.wantAck,

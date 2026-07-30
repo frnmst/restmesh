@@ -14,11 +14,12 @@ A stateless thread-safe REST API for Meshtastic.
 
 - [restmesh](#restmesh)
   - [Description and features](#description-and-features)
-  - [Installation](#installation)
-  - [CLI help](#cli-help)
-  - [Running](#running)
-    - [Defaults](#defaults)
-    - [Globally](#globally)
+  - [Quickstart](#quickstart)
+    - [Installation](#installation)
+    - [CLI help](#cli-help)
+    - [Running](#running)
+      - [Defaults](#defaults)
+      - [Globally](#globally)
   - [REST API](#rest-api)
     - [\[POST\] /api/v1/channels/{channel_index}/messages](#post-apiv1channelschannel_indexmessages)
       - [Parameters](#parameters)
@@ -54,6 +55,7 @@ A stateless thread-safe REST API for Meshtastic.
   - [Contributing](#contributing)
   - [Responsible usage policy](#responsible-usage-policy)
     - [Meshtastic](#meshtastic)
+  - [Consulting and custom integrations](#consulting-and-custom-integrations)
   - [License](#license)
   - [Changelog and trusted source](#changelog-and-trusted-source)
   - [Support this project](#support-this-project)
@@ -67,21 +69,51 @@ Send messages on Meshtastic using a standard REST API:
 - thread safe via asyncio
 - safe because a FIFO queue avoid overwhelming the mesh
 - very simple to integrate in other projects:
-  [Apprise](https://appriseit.com/) is already available
+  [Apprise](https://appriseit.com/) is [already available](#apprise)
 - aims to have 100% unit test coverage
 - doesn't use a database, it merely acts as a gateway
 - no MQTT, WiFI, bluetooth: just plug in the radio via USB, set it as
   `CLIENT_MUTE` and enjoy
 
-## Installation
+A typical use case for restmesh is for system error reporting, for
+example when local Internet is down. You could set up a script to interface
+with restmesh like this:
 
-Coming soon via PyPI:
+```shell
+#!/usr/bin/env bash
+
+# See:
+# https://www.iana.org/domains/root/servers
+#
+# It is very improbable that 3 root DNS server go simultaneously offline.
+#
+ANYCAST_1='198.41.0.4'
+ANYCAST_2='192.36.148.17'
+ANYCAST_3='202.12.27.33'
+
+(nc -zu -w 2 "${ANYCAST_1}" 53 || nc -zu -w 2 "${ANYCAST_2}" 53 || nc -zu -w 2 "${ANYCAST_3}" 53) 2>/dev/null && anycast_ok='true' || anycast_ok='false'
+
+if [ "${anycast_ok}" = 'false' ]; then
+    echo 'Internet unreachable, alerting mesh channel'
+
+    # Use Meshtastic channel 1 (a non-primary channel).
+    # Channel IDs are the same reported in the mobile app.
+    #
+    # You need to install apprise first via pip or your distro's package
+    # manager.
+    apprise -b 'ERROR: Internet unreachable' "json://127.0.0.1:8000/api/v1/integrations/apprise/channels/1/messages"
+fi
+```
+
+## Quickstart
+
+### Installation
 
 ```shell
 pip install restmesh
 ```
 
-## CLI help
+### CLI help
 
 ```
 usage: restmesh [-h] [--host HOST] [--port PORT] [--radio-serial-path RADIO_SERIAL_PATH]
@@ -96,17 +128,18 @@ options:
                         Path of the USB serial device radio (default: /dev/ttyUSB0)
 ```
 
-## Running
+### Running
 
-### Defaults
+#### Defaults
 
 ```shell
 restmesh --host 127.0.0.1 --port 8000 --radio-serial-path /dev/ttyUSB0
 ```
 
-Connect to [http://127.0.0.1/docs](http://127.0.0.1/docs) for the Swagger page.
+Connect to [http://127.0.0.1/docs](http://127.0.0.1/docs) for the Swagger page
+to test the endpoints, or use [Apprise](#apprise) directly.
 
-### Globally
+#### Globally
 
 ```shell
 restmesh --host 0.0.0.0 --port 8000 --radio-serial-path /dev/ttyUSB0
@@ -333,7 +366,11 @@ Adapter gateway.
 
 ### Apprise
 
-restmesh accepts [Apprise](https://appriseit.com/) via the JSON schema.
+restmesh accepts [Apprise](https://appriseit.com/) via the JSON schema. To be
+able to use it you need to
+[install it first](https://appriseit.com/getting-started/installation/).
+See also the [Repology](https://repology.org/projects/?search=apprise) page
+to see the available packages for Apprise.
 
 > [!NOTE]
 > The title parameter is ignored! Write your full text in the body.
@@ -372,8 +409,6 @@ apprise -b 'Hello world!' "json://localhost:8000/api/v1/integrations/apprise/nod
 apprise -b 'Hello world!' "json://localhost:8000/api/v1/integrations/apprise/nodes/169552957/messages?:wantResponse=true&wantAck=false&:portNum=1"
 ```
 
-TODO
-
 ## Contributing
 
 See [Contributing](./CONTRIBUTING.md).
@@ -388,6 +423,14 @@ messages on public channels such as `MediumFast` or `LongFast`. Setup private
 channels instead.
 
 restmesh has a basic message FIFO queue also to mitigate the air time problem.
+
+## Consulting and custom integrations
+
+If you need help or custom endpoints and integrations, I'm available for
+contract-based freelance consulting and custom Python development:
+
+- Email: <solvecomputersciencecollabs+restmesh@gmail.com>
+- Freelancing: <https://blog.franco.net.eu.org/jobs/>
 
 ## License
 

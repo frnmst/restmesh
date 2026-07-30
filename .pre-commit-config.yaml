@@ -53,7 +53,6 @@ repos:
     - id: double-quote-string-fixer
     - id: mixed-line-ending
       args: ['--fix=lf']
-    - id: requirements-txt-fixer
 
 - repo: https://codeberg.org/fsfe/reuse-tool
   rev: v6.2.0

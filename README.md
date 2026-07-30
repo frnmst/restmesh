@@ -16,6 +16,9 @@ A stateless thread-safe REST API for Meshtastic.
   - [Description and features](#description-and-features)
   - [Installation](#installation)
   - [CLI help](#cli-help)
+  - [Running](#running)
+    - [Defaults](#defaults)
+    - [Globally](#globally)
   - [REST API](#rest-api)
     - [\[POST\] /api/v1/channels/{channel_index}/messages](#post-apiv1channelschannel_indexmessages)
       - [Parameters](#parameters)
@@ -51,7 +54,6 @@ A stateless thread-safe REST API for Meshtastic.
   - [Contributing](#contributing)
   - [Responsible usage policy](#responsible-usage-policy)
     - [Meshtastic](#meshtastic)
-    - [AI](#ai)
   - [License](#license)
   - [Changelog and trusted source](#changelog-and-trusted-source)
   - [Support this project](#support-this-project)
@@ -94,16 +96,29 @@ options:
                         Path of the USB serial device radio (default: /dev/ttyUSB0)
 ```
 
-Defaults:
+## Running
+
+### Defaults
 
 ```shell
 restmesh --host 127.0.0.1 --port 8000 --radio-serial-path /dev/ttyUSB0
 ```
 
+Connect to [http://127.0.0.1/docs](http://127.0.0.1/docs) for the Swagger page.
+
+### Globally
+
+```shell
+restmesh --host 0.0.0.0 --port 8000 --radio-serial-path /dev/ttyUSB0
+```
+
+> [!WARNING]
+> At the moment no kind of authentication is implemented!
+
 ## REST API
 
 This endpoint documentation is automatically generated from FastAPI OpenAPI's
-generator, via JSON and
+generator and
 [swagger-markdown](https://www.npmjs.com/package/swagger-markdown).
 
 <!-- START_API_DOCS -->
@@ -320,9 +335,10 @@ Adapter gateway.
 
 restmesh accepts [Apprise](https://appriseit.com/) via the JSON schema.
 
-#### Channel
+> [!NOTE]
+> The title parameter is ignored! Write your full text in the body.
 
-The title parameter is ignored. Write your full text in the body.
+#### Channel
 
 Simple example using channel 0:
 
@@ -338,16 +354,29 @@ apprise -b 'Hello world!' "json://localhost:8000/api/v1/integrations/apprise/cha
 
 #### Node
 
+Send a message to the node with hex id `!0a1b2c3d`. Alternatively you can use
+the decimal integer representation of the node id, without prepending the
+`!` character:
+
+```shell
+apprise -b 'My message here' "json://localhost:8000/api/v1/integrations/apprise/nodes/!0a1b2c3d/messages"
+
+apprise -b 'My message here' "json://localhost:8000/api/v1/integrations/apprise/nodes/169552957/messages"
+```
+
+With parameters:
+
+```shell
+apprise -b 'Hello world!' "json://localhost:8000/api/v1/integrations/apprise/nodes/!0a1b2c3d/messages?:wantResponse=true&wantAck=false&:portNum=1"
+
+apprise -b 'Hello world!' "json://localhost:8000/api/v1/integrations/apprise/nodes/169552957/messages?:wantResponse=true&wantAck=false&:portNum=1"
+```
+
 TODO
 
 ## Contributing
 
-- add your new endpoint
-- add unit tests by mocking the radio
-  - valid cases
-  - edge cases
-  - invalid cases
-- pull request
+See [Contributing](./CONTRIBUTING.md).
 
 ## Responsible usage policy
 
@@ -359,28 +388,6 @@ messages on public channels such as `MediumFast` or `LongFast`. Setup private
 channels instead.
 
 restmesh has a basic message FIFO queue also to mitigate the air time problem.
-
-### AI
-
-restmesh is human-authored, AI-assisted code: I don't reject the use of LLMs,
-but all its outputs are thoroughly checked. An LLM is used for some
-brainstorming, and specific domain problem solving, but its outputs are always
-challenged to provide better quality code and compared with the official
-documentation and best practices. The LLM is used as a more powerful search
-engine: that's it.
-
-Remember that LLMs have varying degrees of sycophancy so prompts must be
-adapted to mitigate that.
-
-No kind of AI agents are involved and all commits are signed by humans.
-
-All the LLMs used are lighter, accountless, free-to-use, cloud models. If I
-could self-host a better local AI model that actually works on cheaper hardware
-I would do that instead.
-
-I feel this is the best compromise right now until things get clearer.
-
-If you want to contribute, please follow this policy.
 
 ## License
 

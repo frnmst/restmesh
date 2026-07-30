@@ -58,6 +58,7 @@ A stateless thread-safe REST API for Meshtastic.
   - [Consulting and custom integrations](#consulting-and-custom-integrations)
   - [License](#license)
   - [Changelog and trusted source](#changelog-and-trusted-source)
+  - [Git forge mirrors](#git-forge-mirrors)
   - [Support this project](#support-this-project)
 
 <!--TOC-->
@@ -455,6 +456,15 @@ You can check the authenticity of new releases using my public key.
 
 Changelogs, instructions, sources and keys can be found at
 [blog.franco.net.eu.org/software/#restmesh](https://blog.franco.net.eu.org/software/#restmesh).
+
+## Git forge mirrors
+
+| URL | Type |
+|-----|------|
+| https://codeberg.org/frnmst/restmesh | RW |
+| https://framagit.org/frnmst/restmesh | RW |
+| https://repos.franco.net.eu.org/frnmst/restmesh | RW |
+| https://github.com/frnmst/restmesh | RO (push mirror only) |
 
 ## Support this project
 

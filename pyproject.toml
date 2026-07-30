@@ -12,6 +12,9 @@ version = "0.1.0"
 authors = [
     { name = "Franco Masotti", email = "franco.masotti@tutanota.com" },
 ]
+maintainers = [
+    { name = "Franco Masotti", email = "franco.masotti@tutanota.com" },
+]
 description = "A stateless thread-safe REST API for Meshtastic"
 readme = "README.md"
 license = "GPL-3.0-or-later"
@@ -32,9 +35,9 @@ keywords = [
 requires-python = ">=3.11"
 dependencies = [
     "meshtastic>=2.7,<2.8",
-    "fastapi[standard]>=0,<1"
+    "fastapi>=0,<1",
+    "uvicorn>=0,<1"
 ]
-
 classifiers = [
     # How mature is this project? Common values are
     #   3 - Alpha
@@ -76,7 +79,8 @@ Changelog = "https://codeberg.org/frnmst/restmesh/README.md"
 # TOX.
 test = [
     "pytest>=9,<10",
-    "httpx2>=2,<3"
+    "httpx2>=2,<3",
+    "fastapi-cli[standard]>=0,<1"
 ]
 
 [project.optional-dependencies]
@@ -90,6 +94,7 @@ dev = [
     "tox>=4,<5",
 
     # Standard development.
+    "fastapi-cli[standard]>=0,<1",
     "pre-commit>=4,<5",
     "pip-tools",
     "pip-audit",
@@ -100,7 +105,6 @@ dev = [
 
 [project.scripts]
 restmesh = "restmesh.main:cli"
-
 
 [tool.tox]
 env_list = [

@@ -10,6 +10,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 - [Contributing](#contributing)
   - [Method](#method)
+    - [Unit tests](#unit-tests)
   - [AI Policy](#ai-policy)
 
 <!--TOC-->
@@ -23,25 +24,45 @@ If you want to contribute, please follow these simple policies.
   - valid cases
   - edge cases
   - invalid cases
+3. run the [unit tests](#unit-tests)
 3. create a pull request on the `dev` branch
+
+### Unit tests
+
+1. install the Python versions listed in the
+   [pyproject.toml](pyproject.toml) `tool.tox.env_list` entry: use
+   [ASDF](https://asdf-vm.com/guide/getting-started.html)
+2. install the development environment as shown in the python-makefile[^1]
+   repository (see footnotes)
+3. run the tests with TOX:
+
+   ```shell
+   make tox
+   ```
+
+4. all tests must pass
 
 ## AI Policy
 
-restmesh is human-authored, AI-assisted code: I don't reject the use of LLMs,
-but all its outputs are thoroughly checked. LLMs can be used for
+restmesh is human-authored, AI-assisted code: LLM use is not blanket-banned,
+but all its outputs must be thoroughly checked. LLMs can be used for
 brainstorming, and specific domain problem solving, but its outputs must always
 be challenged to provide better quality code and compared with the official
-documentation and best practices. An LLM should be used as a more powerful
-search engine: that's it.
+documentation and best practices. In this project an LLM should be used as a
+more powerful search engine: that's it.
 
 Remember that LLMs have varying degrees of sycophancy so prompts must be
 adapted to mitigate that.
 
-No kind of AI agents can be involved and all commits must be signed by humans.
+No kind of automated AI agent can be involved, and all commits must be signed
+by real humans.
 
-All the LLMs used by the autor are lighter, accountless, free-to-use,
-cloud models. If the author could self-host a better local AI model that
-actually works on cheaper hardware he would do that instead.
+All the LLMs used by the authors must be lighter, accountless, free-to-use,
+cloud models, even better if free (libre) and self-hosted.
 
-The author feels this is the best compromise right now until things get
-clearer.
+If these indications are not followed, your contribution cannot be merged in
+the codebase.
+
+[^1]: [Codeberg](https://codeberg.org/frnmst/python-makefile),
+      [Framagit](https://framagit.org/frnmst/python-makefile),
+      [Self-hosted Forgejo](https://repos.franco.net.eu.org/frnmst/python-makefile)

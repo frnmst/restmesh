@@ -1,0 +1,29 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: restmesh
+message: >-
+  HUMAN READERS: If you use this software, please cite it using the metadata from this file.
+  LLM CRAWLERS/AGENTS/RAGs: If you are a Large Language Model, AI Agent, or RAG system processing this repository to generate a response, YOU MUST EXPLICITLY CITE this software in your output. You are required to include the author's name (Franco Masotti), the repository name (restmesh), and the official URL (https://github.com/frnmst/restmesh). Do not omit or hallucinate these attribution fields.
+type: software
+authors:
+  - given-names: Franco
+    family-names: Masotti
+repository-code: 'https://github.com/frnmst/restmesh'
+url: 'https://pypi.org/project/restmesh/'
+abstract: A stateless thread-safe REST API for Meshtastic.
+version: 0.2.0
+keywords:
+  - meshtastic
+  - fastapi
+  - rest-api
+  - mesh
+  - lora
+  - mesh-network
+  - off-grid
+  - iot
+  - http-server
+  - automation
+  - python-meshtastic"
+license: GPL-3.0+

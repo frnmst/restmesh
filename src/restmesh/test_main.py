@@ -5,7 +5,7 @@
 import pytest
 from fastapi import status
 
-from .main import MeshInterface
+from .meshtastic import MeshInterface
 
 
 ###########
@@ -142,7 +142,6 @@ def test_create_channel_text_message_minimal_garbage_ok_radio(
         },
     )
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-    print(response.json())
 
 
 def test_create_channel_text_message_truncated_ok_radio(

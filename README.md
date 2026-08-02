@@ -20,7 +20,8 @@ A stateless thread-safe REST API for Meshtastic.
     - [Running](#running)
       - [Defaults](#defaults)
       - [Globally](#globally)
-  - [REST API](#rest-api)
+    - [Use the Core API](#use-the-core-api)
+  - [REST API reference](#rest-api-reference)
     - [\[POST\] /api/v1/channels/{channel_index}/messages](#post-apiv1channelschannel_indexmessages)
       - [Parameters](#parameters)
       - [Request Body](#request-body)
@@ -92,7 +93,10 @@ ANYCAST_1='198.41.0.4'
 ANYCAST_2='192.36.148.17'
 ANYCAST_3='202.12.27.33'
 
-(nc -zu -w 2 "${ANYCAST_1}" 53 || nc -zu -w 2 "${ANYCAST_2}" 53 || nc -zu -w 2 "${ANYCAST_3}" 53) 2>/dev/null && anycast_ok='true' || anycast_ok='false'
+(nc -zu -w 2 "${ANYCAST_1}" 53 \
+ || nc -zu -w 2 "${ANYCAST_2}" 53 \
+ || nc -zu -w 2 "${ANYCAST_3}" 53) 2>/dev/null \
+&& anycast_ok='true' || anycast_ok='false'
 
 if [ "${anycast_ok}" = 'false' ]; then
     echo 'Internet unreachable, alerting mesh channel'
@@ -149,7 +153,38 @@ restmesh --host 0.0.0.0 --port 8000 --radio-serial-path /dev/ttyUSB0
 > [!WARNING]
 > At the moment no kind of authentication is implemented!
 
-## REST API
+### Use the Core API
+
+Send to channel 0 (the primary channel):
+
+```shell
+curl -X 'POST' \
+'http://127.0.0.1:8000/api/v1/channels/0/messages' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "text": "This is a message for the mesh on channel 0!",
+  "wantAck": false,
+  "portNum": 1
+}'
+```
+
+Send to node `!0a1b2c3d`:
+
+```shell
+curl -X 'POST' \
+  'http://127.0.0.1:8000/api/v1/nodes/%210a1b2c3d/messages' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "text": "This is a message for node !0a1b2c3d",
+  "wantAck": false,
+  "wantResponse": true,
+  "portNum": 1
+}'
+```
+
+## REST API reference
 
 This endpoint documentation is automatically generated from FastAPI OpenAPI's
 generator and
@@ -271,7 +306,7 @@ Adapter gateway.
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| version | string |  | Yes |
+| version | string | Apprise JSON schema version | Yes |
 | title | string or null | Unused parameter | No |
 | message | string | UTF-8 text limited to the 237 byte Meshtastic MTU (200 here for safety) | Yes |
 | type | string, <br>**Available values:** "info", "warning", "success", "failure" or null | Unused parameter | No |
@@ -283,7 +318,7 @@ Adapter gateway.
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| version | string |  | Yes |
+| version | string | Apprise JSON schema version | Yes |
 | title | string or null | Unused parameter | No |
 | message | string | UTF-8 text limited to the 237 byte Meshtastic MTU (200 here for safety) | Yes |
 | type | string, <br>**Available values:** "info", "warning", "success", "failure" or null | Unused parameter | No |
@@ -310,11 +345,11 @@ Adapter gateway.
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| status | string |  | Yes |
-| routing_mode | string, <br>**Available values:** "broadcast", "direct" | *Enum:* `"broadcast"`, `"direct"` | Yes |
-| packet | [MeshPacketDetails](#meshpacketdetails-schema) |  | Yes |
+| status | string | Always return "success" | Yes |
+| routing_mode | string, <br>**Available values:** "broadcast", "direct" | Message routing type<br>*Enum:* `"broadcast"`, `"direct"` | Yes |
+| packet | [MeshPacketDetails](#meshpacketdetails-schema) | Packet data from radio | Yes |
 | onResponse_callback_payload | object or null |  | No |
-| truncated | boolean |  | No |
+| truncated | boolean | Message was truncated to Meshtastic MTU before being sent | No |
 
 #### MeshPacketDetails Schema
 
@@ -361,7 +396,6 @@ Adapter gateway.
 | ctx | object |  | No |
 
 <!-- END_API_DOCS -->
-
 
 ## Integrations
 
@@ -459,18 +493,15 @@ Changelogs, instructions, sources and keys can be found at
 
 ## Git forge mirrors
 
-| URL | Type |
-|-----|------|
-| https://codeberg.org/frnmst/restmesh | RW |
-| https://framagit.org/frnmst/restmesh | RW |
-| https://repos.franco.net.eu.org/frnmst/restmesh | RW |
-| https://github.com/frnmst/restmesh | RO (push mirror only) |
+| URL | Type | Notes |
+|-----|------|-------|
+| https://github.com/frnmst/restmesh | RW | Official home |
+| https://codeberg.org/frnmst/restmesh | RW | Mirror |
+| https://framagit.org/frnmst/restmesh | RW | Mirror |
+| https://repos.franco.net.eu.org/frnmst/restmesh | RW | Mirror |
 
 ## Support this project
 
 - [Buy Me a Coffee](https://www.buymeacoffee.com/frnmst)
 - [Liberapay](https://liberapay.com/frnmst)
-- Bitcoin: `bc1qnkflazapw3hjupawj0lm39dh9xt88s7zal5mwu`
-- Monero: `84KHWDTd9hbPyGwikk33Qp5GW7o7zRwPb8kJ6u93zs4sNMpDSnM5ZTWVnUp2cudRYNT6rNqctnMQ9NbUewbj7MzCBUcrQEY`
-- Dogecoin: `DMB5h2GhHiTNW7EcmDnqkYpKs6Da2wK3zP`
-- Vertcoin: `vtc1qd8n3jvkd2vwrr6cpejkd9wavp4ld6xfu9hkhh0`
+- [GitHub Sponsors](https://github.com/sponsors/frnmst)

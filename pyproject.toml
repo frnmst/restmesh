@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "restmesh"
-version = "0.1.0"
+version = "0.2.0"
 authors = [
     { name = "Franco Masotti", email = "franco.masotti@tutanota.com" },
 ]
@@ -69,11 +69,12 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://codeberg.org/frnmst/restmesh"
-Documentation = "https://codeberg.org/frnmst/restmesh"
-Repository = "https://codeberg.org/frnmst/restmesh.git"
-Issues = "https://codeberg.org/frnmst/restmesh/issues"
-Changelog = "https://codeberg.org/frnmst/restmesh/src/branch/master/README.md"
+Homepage = "https://github.com/frnmst/restmesh"
+Documentation = "https://github.com/frnmst/restmesh"
+Repository = "https://github.com/frnmst/restmesh.git"
+Issues = "https://github.com/frnmst/restmesh/issues"
+Changelog = "https://github.com/frnmst/restmesh/tags"
+Funding = "https://github.com/frnmst/restmesh#support-this-project"
 
 [dependency-groups]
 # TOX.

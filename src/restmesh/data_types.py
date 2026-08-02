@@ -152,9 +152,29 @@ WantResponse = Annotated[
         '`true` if you want the service on the other side to send an application layer response'
     )]
 
+# See
+# https://github.com/caronc/apprise/blob/4162f39efba5481bad2b61c2e85e05061542f470/apprise/plugins/custom_json.py#L89
+AppriseJsonSchemaVersion = Annotated[
+    str, Field(description='Apprise JSON schema version')]
+
 AppriseNotificationType = Annotated[
     Literal['info', 'warning', 'success', 'failure'] | None,
     Field(default='info', description='Unused parameter')]
 
 AppriseNotificationTitle = Annotated[
     str | None, Field(default='', description='Unused parameter')]
+
+MeshActionResponseStatus = Annotated[
+    Literal['success'],
+    Field(description='Always return "success"')]
+
+MeshActionResponseRoutingMode = Annotated[
+    Literal['broadcast', 'direct'],
+    Field(description='Message routing type')]
+
+MeshActionResponseTruncated = Annotated[
+    bool,
+    Field(
+        default=False,
+        description='Message was truncated to Meshtastic MTU before being sent'
+    )]

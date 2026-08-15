@@ -6,14 +6,22 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 # restmesh
 
+[![PyPI restmesh version](https://img.shields.io/pypi/v/restmesh.svg)](https://pypi.org/project/restmesh/)
+[![Downloads](https://pepy.tech/badge/restmesh)](https://pepy.tech/project/restmesh)
 [![Buy me a coffee](assets/buy_me_a_coffee.svg)](https://buymeacoff.ee/frnmst)
+[![M-Powered](https://img.shields.io/badge/M-Powered-67EA94)](https://meshtastic.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=FastAPI&labelColor=555&logoColor=white)](https://fastapi.tiangolo.com/)
 
 A stateless thread-safe REST API for Meshtastic.
+
+[![image](./assets/restmesh_youtube_video_thumbnail.png)](https://www.youtube.com/watch?v=iHP0RuHrN70)
 
 <!--TOC-->
 
 - [restmesh](#restmesh)
   - [Description and features](#description-and-features)
+  - [Examples](#examples)
+    - [Error reporting](#error-reporting)
   - [Quickstart](#quickstart)
     - [Installation](#installation)
     - [CLI help](#cli-help)
@@ -77,6 +85,10 @@ Send messages on Meshtastic using a standard REST API:
 - no MQTT, WiFI, bluetooth: just plug in the radio via USB, set it as
   `CLIENT_MUTE` and enjoy
 
+## Examples
+
+### Error reporting
+
 A typical use case for restmesh is for system error reporting, for
 example when local Internet is down. You could set up a script to interface
 with restmesh like this:
@@ -121,16 +133,17 @@ pip install restmesh
 ### CLI help
 
 ```
-usage: restmesh [-h] [--host HOST] [--port PORT] [--radio-serial-path RADIO_SERIAL_PATH]
+usage: restmesh [-h] [--version] [--host HOST] [--port PORT] [--radio-serial-path RADIO_SERIAL_PATH]
 
 restmesh: stateless thread-safe REST API for Meshtastic
 
 options:
   -h, --help            show this help message and exit
-  --host HOST           Server host listening address (default: 127.0.0.1)
-  --port PORT           Server listening port (default: 8000)
+  --version             show program's version number and exit
+  --host HOST           server host listening address (default: 127.0.0.1)
+  --port PORT           server listening port (default: 8000)
   --radio-serial-path RADIO_SERIAL_PATH
-                        Path of the USB serial device radio (default: /dev/ttyUSB0)
+                        path of the USB serial device radio (default: /dev/ttyUSB0)
 ```
 
 ### Running
@@ -164,8 +177,8 @@ curl -X 'POST' \
   -H 'Content-Type: application/json' \
   -d '{
   "text": "This is a message for the mesh on channel 0!",
-  "wantAck": false,
-  "portNum": 1
+  "want_ack": false,
+  "port_num": 1
 }'
 ```
 
@@ -178,9 +191,9 @@ curl -X 'POST' \
   -H 'Content-Type: application/json' \
   -d '{
   "text": "This is a message for node !0a1b2c3d",
-  "wantAck": false,
-  "wantResponse": true,
-  "portNum": 1
+  "want_ack": false,
+  "want_response": true,
+  "port_num": 1
 }'
 ```
 
@@ -311,8 +324,8 @@ Adapter gateway.
 | message | string | UTF-8 text limited to the 237 byte Meshtastic MTU (200 here for safety) | Yes |
 | type | string, <br>**Available values:** "info", "warning", "success", "failure" or null | Unused parameter | No |
 | attachment | [  ], <br>**Default:**  | Unused parameter | No |
-| wantAck | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery) | No |
-| portNum | integer, <br>**Default:** 1 | Protobuf application port number | No |
+| want_ack | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery) | No |
+| port_num | integer, <br>**Default:** 1 | Protobuf application port number | No |
 
 #### AppriseJsonNodeDirectPayload Schema
 
@@ -323,17 +336,17 @@ Adapter gateway.
 | message | string | UTF-8 text limited to the 237 byte Meshtastic MTU (200 here for safety) | Yes |
 | type | string, <br>**Available values:** "info", "warning", "success", "failure" or null | Unused parameter | No |
 | attachment | [  ], <br>**Default:**  | Unused parameter | No |
-| wantAck | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery) | No |
-| wantResponse | boolean, <br>**Default:** true | `true` if you want the service on the other side to send an application layer response | No |
-| portNum | integer, <br>**Default:** 1 | Protobuf application port number | No |
+| want_ack | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery) | No |
+| want_response | boolean, <br>**Default:** true | `true` if you want the service on the other side to send an application layer response | No |
+| port_num | integer, <br>**Default:** 1 | Protobuf application port number | No |
 
 #### ChannelBroadcastPayload Schema
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | text | string | UTF-8 text limited to the 237 byte Meshtastic MTU (200 here for safety) | Yes |
-| wantAck | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery) | No |
-| portNum | integer, <br>**Default:** 1 | Protobuf application port number | No |
+| want_ack | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery) | No |
+| port_num | integer, <br>**Default:** 1 | Protobuf application port number | No |
 
 #### HTTPValidationError Schema
 
@@ -347,8 +360,8 @@ Adapter gateway.
 | ---- | ---- | ----------- | -------- |
 | status | string | Always return "success" | Yes |
 | routing_mode | string, <br>**Available values:** "broadcast", "direct" | Message routing type<br>*Enum:* `"broadcast"`, `"direct"` | Yes |
-| packet | [MeshPacketDetails](#meshpacketdetails-schema) | Packet data from radio | Yes |
-| onResponse_callback_payload | object or null |  | No |
+| packet | [MeshPacketDetails](#meshpacketdetails-schema) | Packet data from radios | Yes |
+| on_response_callback_payload | object or null |  | No |
 | truncated | boolean | Message was truncated to Meshtastic MTU before being sent | No |
 
 #### MeshPacketDetails Schema
@@ -359,19 +372,19 @@ Adapter gateway.
 | from | integer or string |  | Yes |
 | to | integer or string |  | Yes |
 | channel | integer | The channel index (0 to 7) | Yes |
-| portnum | integer | Protobuf application port number | Yes |
+| port_num | integer | Protobuf application port number | Yes |
 | text | string | The message sent to the mesh | Yes |
-| wantAck | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery) | No |
-| wantResponse | boolean, <br>**Default:** true | `true` if you want the service on the other side to send an application layer response | No |
+| want_ack | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery) | No |
+| want_response | boolean, <br>**Default:** true | `true` if you want the service on the other side to send an application layer response | No |
 
 #### NodeDirectPayload Schema
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | text | string | UTF-8 text limited to the 237 byte Meshtastic MTU (200 here for safety) | Yes |
-| wantAck | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery) | No |
-| wantResponse | boolean, <br>**Default:** true | `true` if you want the service on the other side to send an application layer response | No |
-| portNum | integer, <br>**Default:** 1 | Protobuf application port number | No |
+| want_ack | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery) | No |
+| want_response | boolean, <br>**Default:** true | `true` if you want the service on the other side to send an application layer response | No |
+| port_num | integer, <br>**Default:** 1 | Protobuf application port number | No |
 
 #### QueueErrorResponse Schema
 

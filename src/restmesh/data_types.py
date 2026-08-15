@@ -16,14 +16,17 @@ truncated_message: ContextVar[bool] = ContextVar('truncated_message',
 
 # See:
 # https://github.com/meshtastic/protobufs/blob/master/meshtastic/mesh.proto
-NodeNum = Annotated[
-    int,
-    Field(ge=0, le=(2**32) - 1, description='The 32-bit integer node number')]
+NodeNum = Annotated[int,
+                    Field(strict=True,
+                          ge=0,
+                          le=(2**32) - 1,
+                          description='The 32-bit integer node number')]
 
 # Should be an 8 char HEX integer.
 NodeId = Annotated[
     str,
-    Field(pattern=r'^![0-9a-f]{8}$',
+    Field(strict=True,
+          pattern=r'^![0-9a-f]{8}$',
           description=
           "The 8-character lowercase hex string node ID starting with '!'")]
 
@@ -92,9 +95,11 @@ ChannelIndex = Annotated[
 
 # See
 # https://github.com/meshtastic/protobufs/blob/master/meshtastic/portnums.proto
-PortNum = Annotated[
-    int,
-    Field(ge=0, le=511, description='Protobuf application port number')]
+PortNum = Annotated[int,
+                    Field(strict=True,
+                          ge=0,
+                          le=511,
+                          description='Protobuf application port number')]
 
 
 # Before validators.
@@ -127,6 +132,7 @@ def truncate_to_meshtastic_mtu(v: str) -> str:
 TextMessagePayload = Annotated[
     str,
     Field(
+        strict=True,
         description=
         'UTF-8 text limited to the 237 byte Meshtastic MTU (200 here for safety)'
     ),
@@ -137,6 +143,7 @@ TextMessagePayload = Annotated[
 WantAck = Annotated[
     bool,
     Field(
+        strict=True,
         default=False,
         description=
         '`true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery)'
@@ -147,6 +154,7 @@ WantAck = Annotated[
 WantResponse = Annotated[
     bool,
     Field(
+        strict=True,
         default=True,
         description=
         '`true` if you want the service on the other side to send an application layer response'
@@ -175,6 +183,7 @@ MeshActionResponseRoutingMode = Annotated[
 MeshActionResponseTruncated = Annotated[
     bool,
     Field(
+        strict=True,
         default=False,
         description='Message was truncated to Meshtastic MTU before being sent'
     )]

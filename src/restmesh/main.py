@@ -95,15 +95,15 @@ app = FastAPI(title='restmesh',
 
 class ChannelBroadcastPayload(BaseModel):
     text: data_types.TextMessagePayload
-    wantAck: data_types.WantAck = False
-    portNum: data_types.PortNum = 1
+    want_ack: data_types.WantAck = False
+    port_num: data_types.PortNum = 1
 
 
 class NodeDirectPayload(BaseModel):
     text: data_types.TextMessagePayload
-    wantAck: data_types.WantAck = False
-    wantResponse: data_types.WantResponse = True
-    portNum: data_types.PortNum = 1
+    want_ack: data_types.WantAck = False
+    want_response: data_types.WantResponse = True
+    port_num: data_types.PortNum = 1
 
 
 class AppriseJsonChannelBroadcastPayload(BaseModel):
@@ -112,8 +112,8 @@ class AppriseJsonChannelBroadcastPayload(BaseModel):
     message: data_types.TextMessagePayload
     type: data_types.AppriseNotificationType = 'info'
     attachment: list = Field(default=[], description='Unused parameter')
-    wantAck: data_types.WantAck = False
-    portNum: data_types.PortNum = 1
+    want_ack: data_types.WantAck = False
+    port_num: data_types.PortNum = 1
 
 
 class AppriseJsonNodeDirectPayload(BaseModel):
@@ -122,9 +122,9 @@ class AppriseJsonNodeDirectPayload(BaseModel):
     message: data_types.TextMessagePayload
     type: data_types.AppriseNotificationType = 'info'
     attachment: list = Field(default=[], description='Unused parameter')
-    wantAck: data_types.WantAck = False
-    wantResponse: data_types.WantResponse = True
-    portNum: data_types.PortNum = 1
+    want_ack: data_types.WantAck = False
+    want_response: data_types.WantResponse = True
+    port_num: data_types.PortNum = 1
 
 
 # Response schemas.
@@ -133,17 +133,17 @@ class MeshPacketDetails(BaseModel):
     from_node: int | str = Field(alias='from')
     to_node: int | str = Field(alias='to')
     channel: data_types.ChannelIndex
-    portnum: data_types.PortNum
+    port_num: data_types.PortNum
     text: str = Field(description='The message sent to the mesh')
-    wantAck: data_types.WantAck
-    wantResponse: data_types.WantResponse
+    want_ack: data_types.WantAck
+    want_response: data_types.WantResponse
 
 
 class MeshActionResponse(BaseModel):
     status: data_types.MeshActionResponseStatus
     routing_mode: data_types.MeshActionResponseRoutingMode
-    packet: MeshPacketDetails = Field(description='Packet data from radio')
-    onResponse_callback_payload: dict[str, Any] | None = None
+    packet: MeshPacketDetails = Field(description='Packet data from radios')
+    on_response_callback_payload: dict[str, Any] | None = None
     truncated: data_types.MeshActionResponseTruncated = False
 
 
@@ -165,9 +165,9 @@ async def send_text_to_channel(
         text=payload.text,
         destination_id=0xffffffff,
         channel_index=channel_index,
-        want_ack=payload.wantAck,
+        want_ack=payload.want_ack,
         want_response=False,
-        port_num=payload.portNum)
+        port_num=payload.port_num)
     return MeshActionResponse(status='success',
                               routing_mode='broadcast',
                               packet=MeshPacketDetails(**packet),
@@ -191,9 +191,9 @@ async def send_text_to_node(
         text=payload.text,
         destination_id=node_target,
         channel_index=0,
-        want_ack=payload.wantAck,
-        want_response=payload.wantResponse,
-        port_num=payload.portNum)
+        want_ack=payload.want_ack,
+        want_response=payload.want_response,
+        port_num=payload.port_num)
     return MeshActionResponse(status='success',
                               routing_mode='direct',
                               packet=MeshPacketDetails(**packet),
@@ -217,9 +217,9 @@ async def apprise_gateway_adapter_send_text_channel(
         text=payload.message,
         destination_id=0xffffffff,
         channel_index=channel_index,
-        want_ack=payload.wantAck,
+        want_ack=payload.want_ack,
         want_response=False,
-        port_num=payload.portNum)
+        port_num=payload.port_num)
     return MeshActionResponse(status='success',
                               routing_mode='broadcast',
                               packet=MeshPacketDetails(**packet),
@@ -243,9 +243,9 @@ async def apprise_gateway_adapter_send_text_node(
         text=payload.message,
         destination_id=node_target,
         channel_index=0,
-        want_ack=payload.wantAck,
-        want_response=payload.wantResponse,
-        port_num=payload.portNum)
+        want_ack=payload.want_ack,
+        want_response=payload.want_response,
+        port_num=payload.port_num)
     return MeshActionResponse(status='success',
                               routing_mode='direct',
                               packet=MeshPacketDetails(**packet),
@@ -257,27 +257,33 @@ def cli():
 
     parser = argparse.ArgumentParser(
         description='restmesh: stateless thread-safe REST API for Meshtastic')
-
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=importlib.metadata.version('restmesh'),
+    )
     parser.add_argument(
         '--host',
         type=str,
         default='127.0.0.1',
-        help='Server host listening address (default: 127.0.0.1)')
+        help='server host listening address (default: 127.0.0.1)')
     parser.add_argument('--port',
                         type=int,
                         default=8000,
-                        help='Server listening port (default: 8000)')
+                        help='server listening port (default: 8000)')
     parser.add_argument(
         '--radio-serial-path',
         type=str,
         default=MESHTASTIC_SERIAL_DEV,
         help=
-        f'Path of the USB serial device radio (default: {MESHTASTIC_SERIAL_DEV})'
+        f'path of the USB serial device radio (default: {MESHTASTIC_SERIAL_DEV})'
     )
 
     args = parser.parse_args()
 
     MESHTASTIC_SERIAL_DEV = args.radio_serial_path
+
+    logging.info(f'restmesh version {importlib.metadata.version("restmesh")}')
     uvicorn.run('restmesh.main:app',
                 host=args.host,
                 port=args.port,

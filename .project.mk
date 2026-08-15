@@ -21,6 +21,8 @@ pytest:
 		&& pytest; \
 		$(VENV_DEACTIVATE)
 
+# `tox -r` to recreate tox environment, in case of `WARNING: Ignoring invalid
+# distribution uninstall-no-record-file` error.
 tox:
 	$(VENV_ACTIVATE) \
 		&& tox; \
@@ -29,6 +31,11 @@ tox:
 serve-dev:
 	$(VENV_ACTIVATE) \
 		&& fastapi dev; \
+		$(VENV_DEACTIVATE)
+
+serve-dev-global:
+	$(VENV_ACTIVATE) \
+		&& fastapi dev --host 0.0.0.0; \
 		$(VENV_DEACTIVATE)
 
 # See

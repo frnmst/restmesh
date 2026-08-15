@@ -73,10 +73,10 @@ async def meshtastic_packet_worker(app: FastAPI):
                 'from': from_node_raw,
                 'to': to_node_raw,
                 'channel': channel_raw,
-                'portnum': p['port_num'],
+                'port_num': p['port_num'],
                 'text': p['text'],
-                'wantAck': p['want_ack'],
-                'wantResponse': p['want_response']
+                'want_ack': p['want_ack'],
+                'want_response': p['want_response']
             }
 
             logging.info('radio returned:')

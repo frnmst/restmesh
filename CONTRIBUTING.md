@@ -11,7 +11,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 - [Contributing](#contributing)
   - [Method](#method)
     - [Unit tests](#unit-tests)
+  - [Variable naming](#variable-naming)
+    - [JSON payload](#json-payload)
+    - [Data type annotations](#data-type-annotations)
   - [AI Policy](#ai-policy)
+    - [Commits](#commits)
+    - [Models](#models)
+    - [LLM codebase input](#llm-codebase-input)
+    - [Note](#note)
 
 <!--TOC-->
 
@@ -42,23 +49,51 @@ If you want to contribute, please follow these simple policies.
 
 4. all tests must pass
 
+## Variable naming
+
+### JSON payload
+
+To keep things very uniform and simple please use snake\_case for all JSON
+payload variables. See also:
+
+- https://stackoverflow.com/a/25368854
+- https://jsonic.io/guides/json-key-naming-conventions
+
+### Data type annotations
+
+When using type annotations with `Annotated`, follow
+[FastAPI's standard](https://fastapi.tiangolo.com/tutorial/dependencies/#share-annotated-dependencies)
+which uses Capitalized CamelCase.
+
 ## AI Policy
 
-restmesh is human-authored, AI-assisted code: LLM use is not blanket-banned,
-but all its outputs must be thoroughly checked. LLMs can be used for
-brainstorming, and specific domain problem solving, but its outputs must always
-be challenged to provide better quality code and compared with the official
-documentation and best practices. In this project an LLM should be used as a
-more powerful search engine: that's it.
+restmesh is human-authored, and AI-assisted code for some brainstorming and
+debugging: LLM use is not blanket-banned, but all its outputs must be
+thoroughly checked. LLMs can be used for ideas and specific domain problem
+solving, but its outputs must always be challenged to provide better quality
+code and compared with the official documentation and best practices. In this
+project an LLM should be used as a more powerful search engine: that's it.
 
 Remember that LLMs have varying degrees of sycophancy so prompts must be
 adapted to mitigate that.
 
+### Commits
+
 No kind of automated AI agent can be involved, and all commits must be signed
 by real humans.
 
+### Models
+
 All the LLMs used by the authors must be lighter, accountless, free-to-use,
 cloud models, even better if free (libre) and self-hosted.
+
+### LLM codebase input
+
+Please do not input this whole repository into an LLM and ask it to find
+vulnerabilities or to "improve the code". You may prompt specific code snippets
+if you are unsure about what they do.
+
+### Note
 
 If these indications are not followed, your contribution cannot be merged in
 the codebase.

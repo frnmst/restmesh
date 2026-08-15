@@ -16,8 +16,8 @@ def test_create_channel_text_message_ok_radio(client_radio_ok, mock_radio_ok):
         '/api/v1/channels/0/messages',
         json={
             'text': 'Foo',
-            'wantAck': False,
-            'portNum': 1
+            'want_ack': False,
+            'port_num': 1
         },
     )
     assert response.status_code == status.HTTP_202_ACCEPTED
@@ -29,12 +29,12 @@ def test_create_channel_text_message_ok_radio(client_radio_ok, mock_radio_ok):
             'from': 0,
             'to': 0,
             'channel': 0,
-            'portnum': 1,
+            'port_num': 1,
             'text': 'Foo',
-            'wantAck': False,
-            'wantResponse': False
+            'want_ack': False,
+            'want_response': False
         },
-        'onResponse_callback_payload': None,
+        'on_response_callback_payload': None,
         'truncated': False
     }
 
@@ -50,8 +50,8 @@ def test_create_node_text_message_ok_radio(client_radio_ok, mock_radio_ok,
         f'/api/v1/nodes/{valid_node_target}/messages',
         json={
             'text': 'Foo',
-            'wantAck': False,
-            'portNum': 1
+            'want_ack': False,
+            'port_num': 1
         },
     )
     assert response.status_code == status.HTTP_202_ACCEPTED
@@ -63,12 +63,12 @@ def test_create_node_text_message_ok_radio(client_radio_ok, mock_radio_ok,
             'from': 0,
             'to': 0,
             'channel': 0,
-            'portnum': 1,
+            'port_num': 1,
             'text': 'Foo',
-            'wantAck': False,
-            'wantResponse': True
+            'want_ack': False,
+            'want_response': True
         },
-        'onResponse_callback_payload': None,
+        'on_response_callback_payload': None,
         'truncated': False
     }
 
@@ -97,8 +97,8 @@ def test_create_node_text_message_invalid_node_target_ok_radio(
         f'/api/v1/nodes/{invalid_node_target}/messages',
         json={
             'text': 'Foo',
-            'wantAck': False,
-            'portNum': 1
+            'want_ack': False,
+            'port_num': 1
         },
     )
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
@@ -122,12 +122,12 @@ def test_create_channel_text_message_minimal_ok_radio(client_radio_ok,
             'from': 0,
             'to': 0,
             'channel': 0,
-            'portnum': 1,
+            'port_num': 1,
             'text': 'Foo',
-            'wantAck': False,
-            'wantResponse': False
+            'want_ack': False,
+            'want_response': False
         },
-        'onResponse_callback_payload': None,
+        'on_response_callback_payload': None,
         'truncated': False
     }
 
@@ -135,8 +135,26 @@ def test_create_channel_text_message_minimal_ok_radio(client_radio_ok,
 @pytest.mark.parametrize('mock_radio_ok', [0x0123456], indirect=True)
 def test_create_channel_text_message_minimal_garbage_ok_radio(
         client_radio_ok, mock_radio_ok):
+    r"""Invalid payload key."""
     response = client_radio_ok.post(
         '/api/v1/channels/0/messages',
+        json={
+            'tExt': 'Foo',
+        },
+    )
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+
+@pytest.mark.parametrize('mock_radio_ok', [0x0], indirect=True)
+@pytest.mark.parametrize('valid_node_target', [
+    '!00000000',
+    '0',
+])
+def test_create_node_text_message_minimal_garbage_ok_radio(
+        client_radio_ok, mock_radio_ok, valid_node_target):
+    r"""Invalid payload key."""
+    response = client_radio_ok.post(
+        f'/api/v1/nodes/{valid_node_target}/messages',
         json={
             'tExt': 'Foo',
         },
@@ -150,8 +168,8 @@ def test_create_channel_text_message_truncated_ok_radio(
         '/api/v1/channels/0/messages',
         json={
             'text': '0' * 201,
-            'wantAck': False,
-            'portNum': 1
+            'want_ack': False,
+            'port_num': 1
         },
     )
     assert response.status_code == status.HTTP_202_ACCEPTED
@@ -163,12 +181,47 @@ def test_create_channel_text_message_truncated_ok_radio(
             'from': 0,
             'to': 0,
             'channel': 0,
-            'portnum': 1,
+            'port_num': 1,
             'text': f'{"0"*191}<|TRUNC|>',
-            'wantAck': False,
-            'wantResponse': False
+            'want_ack': False,
+            'want_response': False
         },
-        'onResponse_callback_payload': None,
+        'on_response_callback_payload': None,
+        'truncated': True
+    }
+
+
+@pytest.mark.parametrize('valid_node_target', [
+    '!00000000',
+    '0',
+])
+def test_create_node_text_message_truncated_ok_radio(client_radio_ok,
+                                                     mock_radio_ok,
+                                                     valid_node_target):
+    response = client_radio_ok.post(
+        f'/api/v1/nodes/{valid_node_target}/messages',
+        json={
+            'text': '0' * 201,
+            'want_ack': False,
+            'want_response': False,
+            'port_num': 1
+        },
+    )
+    assert response.status_code == status.HTTP_202_ACCEPTED
+    assert response.json() == {
+        'status': 'success',
+        'routing_mode': 'direct',
+        'packet': {
+            'id': 0,
+            'from': 0,
+            'to': 0,
+            'channel': 0,
+            'port_num': 1,
+            'text': f'{"0"*191}<|TRUNC|>',
+            'want_ack': False,
+            'want_response': False
+        },
+        'on_response_callback_payload': None,
         'truncated': True
     }
 
@@ -179,8 +232,8 @@ def test_create_channel_text_message_maximum_mtu_ok_radio(
         '/api/v1/channels/0/messages',
         json={
             'text': '0' * 200,
-            'wantAck': False,
-            'portNum': 1
+            'want_ack': False,
+            'port_num': 1
         },
     )
     assert response.status_code == status.HTTP_202_ACCEPTED
@@ -192,65 +245,100 @@ def test_create_channel_text_message_maximum_mtu_ok_radio(
             'from': 0,
             'to': 0,
             'channel': 0,
-            'portnum': 1,
+            'port_num': 1,
             'text': f'{"0"*200}',
-            'wantAck': False,
-            'wantResponse': False
+            'want_ack': False,
+            'want_response': False
         },
-        'onResponse_callback_payload': None,
+        'on_response_callback_payload': None,
         'truncated': False
     }
 
 
-def test_create_channel_text_message_wrong_channel_lt_0_ok_radio(
-        client_radio_ok, mock_radio_ok):
+@pytest.mark.parametrize('valid_node_target', [
+    '!00000000',
+    '0',
+])
+def test_create_node_text_message_maximum_mtu_ok_radio(client_radio_ok,
+                                                       mock_radio_ok,
+                                                       valid_node_target):
     response = client_radio_ok.post(
-        '/api/v1/channels/-1/messages',
+        f'/api/v1/nodes/{valid_node_target}/messages',
+        json={
+            'text': '0' * 200,
+            'want_ack': False,
+            'want_response': False,
+            'port_num': 1
+        },
+    )
+    assert response.status_code == status.HTTP_202_ACCEPTED
+    assert response.json() == {
+        'status': 'success',
+        'routing_mode': 'direct',
+        'packet': {
+            'id': 0,
+            'from': 0,
+            'to': 0,
+            'channel': 0,
+            'port_num': 1,
+            'text': f'{"0"*200}',
+            'want_ack': False,
+            'want_response': False
+        },
+        'on_response_callback_payload': None,
+        'truncated': False
+    }
+
+
+@pytest.mark.parametrize(
+    'invalid_channel',
+    [
+        # Out of bounds.
+        -10**6,
+        -1,
+        8,
+        10**6,
+
+        # Junk.
+        'a',
+        'foo',
+        None,
+        True,
+        [],
+    ])
+def test_create_channel_text_message_invalid_channel_ok_radio(
+        client_radio_ok, mock_radio_ok, invalid_channel):
+    response = client_radio_ok.post(
+        f'/api/v1/channels/{invalid_channel}/messages',
         json={
             'text': 'Foo',
-            'wantAck': False,
-            'portNum': 1
+            'want_ack': False,
+            'port_num': 1
         },
     )
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 @pytest.mark.parametrize(
-    'invalid_portnum',
+    'invalid_port_num',
     [
         # Out of bounds.
         -1,
         512,
+
+        # Junk.
+        'a',
+        None,
+        True,
+        [],
     ])
 def test_create_channel_text_message_invalid_porntnum_ok_radio(
-        client_radio_ok, mock_radio_ok, invalid_portnum):
+        client_radio_ok, mock_radio_ok, invalid_port_num):
     response = client_radio_ok.post(
         '/api/v1/channels/0/messages',
         json={
             'text': 'Foo',
-            'portNum': invalid_portnum
-        },
-    )
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-
-
-def test_create_channel_text_message_wrong_channel_gt_7_ok_radio(
-        client_radio_ok, mock_radio_ok):
-    response = client_radio_ok.post(
-        '/api/v1/channels/8/messages',
-        json={
-            'text': 'Foo',
-        },
-    )
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-
-
-def test_create_channel_text_message_wrong_channel_non_int_ok_radio(
-        client_radio_ok, mock_radio_ok):
-    response = client_radio_ok.post(
-        '/api/v1/channels/foo/messages',
-        json={
-            'text': 'Foo',
+            'port_num': invalid_port_num
         },
     )
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT

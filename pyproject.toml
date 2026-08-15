@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "restmesh"
-version = "0.2.0"
+version = "0.3.0"
 authors = [
     { name = "Franco Masotti", email = "franco.masotti@tutanota.com" },
 ]
@@ -145,6 +145,11 @@ packages = ["src/restmesh"]
 exclude = [
     "src/restmesh/*test*.py"
 ]
+
+# See
+# https://hatch.pypa.io/dev/config/build/#dev-mode
+[tool.hatch.build]
+dev-mode-dirs = ["src"]
 
 [tool.hatch.build.targets.wheel.sources]
 "src" = ""

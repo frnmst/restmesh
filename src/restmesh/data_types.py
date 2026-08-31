@@ -10,6 +10,8 @@ from typing import Annotated, Literal
 from fastapi import Path
 from pydantic import BeforeValidator, Field, TypeAdapter, ValidationError
 
+from . import models
+
 # Thread safe variable.
 truncated_message: ContextVar[bool] = ContextVar('truncated_message',
                                                  default=False)
@@ -127,37 +129,30 @@ def truncate_to_meshtastic_mtu(v: str) -> str:
     return f'{truncated_str}{SUFFIX}'
 
 
-# See
-# https://buf.build/meshtastic/protobufs/docs/86640f20db7b9b5be42949d18e8d96ad10d47a68%3Ameshtastic#meshtastic.Constants
 TextMessagePayload = Annotated[
     str,
     Field(
         strict=True,
         description=
-        'UTF-8 text limited to the 237 byte Meshtastic MTU (200 here for safety)'
-    ),
-    BeforeValidator(truncate_to_meshtastic_mtu)]
+        'UTF-8 text to the mesh. This API limits it to 200 bytes for safety, although [the default Meshtastic MTU is 237 bytes](https://buf.build/meshtastic/protobufs/docs/86640f20db7b9b5be42949d18e8d96ad10d47a68%3Ameshtastic#meshtastic.Constants)'
+    )]
 
-# See:
-# https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText
 WantAck = Annotated[
     bool,
     Field(
         strict=True,
         default=False,
         description=
-        '`true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery)'
+        '`true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery). [See this also](https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText)'
     )]
 
-# See:
-# https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText
 WantResponse = Annotated[
     bool,
     Field(
         strict=True,
         default=True,
         description=
-        '`true` if you want the service on the other side to send an application layer response'
+        '`true` if you want the service on the other side to send an application layer response. [See this also](https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText)'
     )]
 
 # See
@@ -186,4 +181,11 @@ MeshActionResponseTruncated = Annotated[
         strict=True,
         default=False,
         description='Message was truncated to Meshtastic MTU before being sent'
+    )]
+
+RegexSubst = Annotated[
+    models.RegexSubst,
+    Field(
+        description=
+        'Clean the text input using a regex pattern via the safer [google-re2 Python module](https://pypi.org/project/google-re2/) to avoid [catastrophic backtracking](https://www.regular-expressions.info/catastrophic.html). The standard `re` Python module is vulnerable to DoS'
     )]

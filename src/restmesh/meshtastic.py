@@ -13,7 +13,6 @@ from meshtastic.mesh_interface import MeshInterface
 
 from . import http_exceptions
 
-MESHTASTIC_SERIAL_DEV: str = '/dev/ttyUSB0'
 MESHTASTIC_SERIAL_DEV_RECONNECTION_TIMEOUT_SEC: int = 5
 MESSAGE_QUEUE_TIMEOUT_BETWEEN_SENT_PACKETS_SEC: int = 3
 
@@ -118,21 +117,24 @@ async def meshtastic_reconnector(app: FastAPI):
                 # continue working.
                 interface = await loop.run_in_executor(
                     None, lambda: meshtastic.serial_interface.SerialInterface(
-                        devPath=MESHTASTIC_SERIAL_DEV))
+                        devPath=app.state.radio_serial_dev))
                 app.state.radio = interface
+
                 logging.info(
-                    f'Connected to radio via serial on {MESHTASTIC_SERIAL_DEV}'
+                    f'Connected to radio via serial on {app.state.radio_serial_dev}'
                 )
             except FileNotFoundError as e:
                 app.state.radio = None
                 logging.error(e)
                 logging.warning(
-                    f'Radio serial device {MESHTASTIC_SERIAL_DEV} not found')
+                    f'Radio serial device {app.state.radio_serial_dev} not found'
+                )
             except Exception as e:
                 app.state.radio = None
                 logging.error(e)
                 logging.warning(
-                    f'Radio serial device {MESHTASTIC_SERIAL_DEV} unavailable')
+                    f'Radio serial device {app.state.radio_serial_dev} unavailable'
+                )
         else:
             try:
                 if hasattr(app.state.radio,

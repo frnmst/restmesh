@@ -7,12 +7,13 @@ import asyncio
 import importlib.metadata
 import logging
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import Any, Optional
 
 import meshtastic.serial_interface
+import re2 as re
 import uvicorn
 from fastapi import FastAPI, Request, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from . import data_types, http_exceptions, meshtastic
 
@@ -58,7 +59,11 @@ SEND_MESSAGE_EXTRA_ERROR_RESPONSES: dict = {
 # https://fastapi.tiangolo.com/advanced/events/#lifespan
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # The modem Meshtastic instance.
     app.state.radio = None
+
+    # The modem device path.
+    app.state.radio_serial_dev = MESHTASTIC_SERIAL_DEV
     app.state.running: bool = True
     reconnect_task = asyncio.create_task(
         meshtastic.meshtastic_reconnector(app))
@@ -93,20 +98,53 @@ app = FastAPI(title='restmesh',
               lifespan=lifespan)
 
 
-class ChannelBroadcastPayload(BaseModel):
+def apply_regex_truncate_mtu(cls: Any, data: Any) -> Any:
+    r"""Type validation is applied after this method."""
+    if isinstance(data, dict):
+        text: str = data.get('text')
+        regex: dict = data.get('regex_subst', {'pattern': None, 'subst': None})
+        pattern: str = regex.get('pattern', None)
+        subst: str = regex.get('subst', None)
+
+        if isinstance(text, str):
+            if (isinstance(regex, dict) and pattern is not None
+                    and subst is not None and isinstance(pattern, str)
+                    and isinstance(subst, str)):
+                try:
+                    text = re.sub(pattern, subst, text)
+                except re.error:
+                    # Delegate error to the RegexSubst field validator.
+                    pass
+
+            data['text'] = data_types.truncate_to_meshtastic_mtu(text)
+
+    return data
+
+
+class CommonTextPayload(BaseModel):
+    regex_subst: Optional[data_types.RegexSubst] = None
+
+    @model_validator(mode='before')
+    @classmethod
+    def apply_regex_then_truncate_to_mtu(cls, data: Any) -> Any:
+        return apply_regex_truncate_mtu(cls, data)
+
+
+class SimpleCommonTextPayload(CommonTextPayload):
     text: data_types.TextMessagePayload
     want_ack: data_types.WantAck = False
     port_num: data_types.PortNum = 1
 
 
-class NodeDirectPayload(BaseModel):
-    text: data_types.TextMessagePayload
-    want_ack: data_types.WantAck = False
+class ChannelBroadcastPayload(SimpleCommonTextPayload):
+    pass
+
+
+class NodeDirectPayload(SimpleCommonTextPayload):
     want_response: data_types.WantResponse = True
-    port_num: data_types.PortNum = 1
 
 
-class AppriseJsonChannelBroadcastPayload(BaseModel):
+class AppriseCommonTextPayload(CommonTextPayload):
     version: data_types.AppriseJsonSchemaVersion
     title: data_types.AppriseNotificationTitle = ''
     message: data_types.TextMessagePayload
@@ -116,15 +154,12 @@ class AppriseJsonChannelBroadcastPayload(BaseModel):
     port_num: data_types.PortNum = 1
 
 
-class AppriseJsonNodeDirectPayload(BaseModel):
-    version: data_types.AppriseJsonSchemaVersion
-    title: data_types.AppriseNotificationTitle = ''
-    message: data_types.TextMessagePayload
-    type: data_types.AppriseNotificationType = 'info'
-    attachment: list = Field(default=[], description='Unused parameter')
-    want_ack: data_types.WantAck = False
+class AppriseJsonChannelBroadcastPayload(AppriseCommonTextPayload):
+    pass
+
+
+class AppriseJsonNodeDirectPayload(AppriseCommonTextPayload):
     want_response: data_types.WantResponse = True
-    port_num: data_types.PortNum = 1
 
 
 # Response schemas.

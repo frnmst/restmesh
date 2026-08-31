@@ -21,14 +21,27 @@ A stateless thread-safe REST API for Meshtastic.
 - [restmesh](#restmesh)
   - [Description and features](#description-and-features)
   - [Examples](#examples)
-    - [Error reporting](#error-reporting)
+    - [Error reporting: is Internet down?](#error-reporting-is-internet-down)
+    - [RSS/Atom feeds to mesh: weather warnings](#rssatom-feeds-to-mesh-weather-warnings)
   - [Quickstart](#quickstart)
-    - [Installation](#installation)
+    - [One minute setup](#one-minute-setup)
     - [CLI help](#cli-help)
     - [Running](#running)
       - [Defaults](#defaults)
       - [Globally](#globally)
     - [Use the Core API](#use-the-core-api)
+  - [Integrations](#integrations)
+    - [Apprise](#apprise)
+      - [Channel](#channel)
+      - [Node](#node)
+  - [Contributing](#contributing)
+  - [Responsible usage policy](#responsible-usage-policy)
+    - [Meshtastic](#meshtastic)
+  - [Consulting and custom integrations](#consulting-and-custom-integrations)
+  - [License](#license)
+  - [Changelog and trusted source](#changelog-and-trusted-source)
+  - [Git forge mirrors](#git-forge-mirrors)
+  - [Support this project](#support-this-project)
   - [REST API reference](#rest-api-reference)
     - [\[POST\] /api/v1/channels/{channel_index}/messages](#post-apiv1channelschannel_indexmessages)
       - [Parameters](#parameters)
@@ -56,19 +69,8 @@ A stateless thread-safe REST API for Meshtastic.
       - [NodeDirectPayload Schema](#nodedirectpayload-schema)
       - [QueueErrorResponse Schema](#queueerrorresponse-schema)
       - [RadioErrorResponse Schema](#radioerrorresponse-schema)
+      - [RegexSubst Schema](#regexsubst-schema)
       - [ValidationError Schema](#validationerror-schema)
-  - [Integrations](#integrations)
-    - [Apprise](#apprise)
-      - [Channel](#channel)
-      - [Node](#node)
-  - [Contributing](#contributing)
-  - [Responsible usage policy](#responsible-usage-policy)
-    - [Meshtastic](#meshtastic)
-  - [Consulting and custom integrations](#consulting-and-custom-integrations)
-  - [License](#license)
-  - [Changelog and trusted source](#changelog-and-trusted-source)
-  - [Git forge mirrors](#git-forge-mirrors)
-  - [Support this project](#support-this-project)
 
 <!--TOC-->
 
@@ -87,48 +89,68 @@ Send messages on Meshtastic using a standard REST API:
 
 ## Examples
 
-### Error reporting
+### Error reporting: is Internet down?
 
 A typical use case for restmesh is for system error reporting, for
 example when local Internet is down. You could set up a script to interface
-with restmesh like this:
+with restmesh like how I described in
+[Automatic alerts and news on Meshtastic - part 1](https://solvecomputerscience.substack.com/p/automatic-alerts-and-news-on-meshtastic)
 
-```shell
-#!/usr/bin/env bash
+### RSS/Atom feeds to mesh: weather warnings
 
-# See:
-# https://www.iana.org/domains/root/servers
-#
-# It is very improbable that 3 root DNS server go simultaneously offline.
-#
-ANYCAST_1='198.41.0.4'
-ANYCAST_2='192.36.148.17'
-ANYCAST_3='202.12.27.33'
-
-(nc -zu -w 2 "${ANYCAST_1}" 53 \
- || nc -zu -w 2 "${ANYCAST_2}" 53 \
- || nc -zu -w 2 "${ANYCAST_3}" 53) 2>/dev/null \
-&& anycast_ok='true' || anycast_ok='false'
-
-if [ "${anycast_ok}" = 'false' ]; then
-    echo 'Internet unreachable, alerting mesh channel'
-
-    # Use Meshtastic channel 1 (a non-primary channel).
-    # Channel IDs are the same reported in the mobile app.
-    #
-    # You need to install apprise first via pip or your distro's package
-    # manager.
-    apprise -b 'ERROR: Internet unreachable' "json://127.0.0.1:8000/api/v1/integrations/apprise/channels/1/messages"
-fi
-```
+You can also resyndicate RSS/Atom feeds to Meshtastic using a third party
+program called feed2exec. You can add as many feeds as you like and schedule
+the feed fetching via some cron. See the
+[Automatic alerts and news on Meshtastic - part 2](https://solvecomputerscience.substack.com/p/automatic-alerts-and-news-on-meshtastic-part-2)
+post.
 
 ## Quickstart
 
-### Installation
+### One minute setup
 
-```shell
-pip install restmesh
-```
+1. install [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)
+2. install restmesh
+
+   ```shell
+   pipx install restmesh
+   ```
+
+3. your user must have access to the modem. For example on Debian you have
+   to add your user to the `dialout` group
+
+   ```shell
+   sudo usermod -aG dialout ${USER}
+   ```
+
+4. run restmesh
+
+   ```shell
+   restmesh
+   ```
+
+5. connect to the [/docs](http://127.0.0.1:8000/docs) page using a browser
+6. create a Systemd service
+
+   ```ini
+   [Unit]
+   Requires=network-online.target
+   After=network-online.target
+
+   [Service]
+   User=meshtastic
+   Group=meshtastic
+   Type=simple
+   ExecStart=/bin/restmesh
+   Restart=on-failure
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+> [!IMPORTANT]
+> The modem device may be different that the default one, `/dev/ttyUSB0`.
+> Check new devices with `dmesg`. In some cases it might be `/dev/ttyACM0`
+> instead. Naming depdends from different loaded kernel modules.
 
 ### CLI help
 
@@ -154,7 +176,7 @@ options:
 restmesh --host 127.0.0.1 --port 8000 --radio-serial-path /dev/ttyUSB0
 ```
 
-Connect to [http://127.0.0.1/docs](http://127.0.0.1/docs) for the Swagger page
+Connect to [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) for the Swagger page
 to test the endpoints, or use [Apprise](#apprise) directly.
 
 #### Globally
@@ -196,6 +218,115 @@ curl -X 'POST' \
   "port_num": 1
 }'
 ```
+
+## Integrations
+
+### Apprise
+
+restmesh accepts [Apprise](https://appriseit.com/) via the JSON schema. To be
+able to use it you need to
+[install it first](https://appriseit.com/getting-started/installation/).
+See also the [Repology](https://repology.org/projects/?search=apprise) page
+to see the available packages for Apprise.
+
+> [!NOTE]
+> The title parameter is ignored! Write your full text in the body.
+
+#### Channel
+
+Simple example using channel 0:
+
+```shell
+apprise -b 'My message here' "json://localhost:8000/api/v1/integrations/apprise/channels/0/messages"
+```
+
+With parameters:
+
+```shell
+apprise -b 'Hello world!' "json://localhost:8000/api/v1/integrations/apprise/channels/0/messages?:wantAck=false&:portNum=1"
+```
+
+#### Node
+
+Send a message to the node with hex id `!0a1b2c3d`. Alternatively you can use
+the decimal integer representation of the node id, without prepending the
+`!` character:
+
+```shell
+apprise -b 'My message here' "json://localhost:8000/api/v1/integrations/apprise/nodes/!0a1b2c3d/messages"
+
+apprise -b 'My message here' "json://localhost:8000/api/v1/integrations/apprise/nodes/169552957/messages"
+```
+
+With parameters:
+
+```shell
+apprise -b 'Hello world!' "json://localhost:8000/api/v1/integrations/apprise/nodes/!0a1b2c3d/messages?:wantResponse=true&wantAck=false&:portNum=1"
+
+apprise -b 'Hello world!' "json://localhost:8000/api/v1/integrations/apprise/nodes/169552957/messages?:wantResponse=true&wantAck=false&:portNum=1"
+```
+
+## Contributing
+
+See [Contributing](./CONTRIBUTING.md).
+
+## Responsible usage policy
+
+### Meshtastic
+
+In some places, such as Europe, the non-ham LoRa band has limited air time use.
+Please don't use restmesh for mass spamming, and never broadcast automated
+messages on public channels such as `MediumFast` or `LongFast`. Setup private
+channels instead.
+
+restmesh has a basic message FIFO queue also to mitigate the air time problem.
+
+## Consulting and custom integrations
+
+If you need help or custom endpoints and integrations, I'm available for
+contract-based freelance consulting and custom Python development:
+
+- Email: <solvecomputersciencecollabs+restmesh@gmail.com>
+- Freelancing: <https://blog.franco.net.eu.org/jobs/>
+
+## License
+
+Copyright (C) 2026 [Franco Masotti](https://blog.franco.net.eu.org/about/#contacts)
+
+restmesh is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your
+option) any later version.
+
+restmesh is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+more details.
+
+You should have received a copy of the GNU General Public License along
+with restmesh. If not, see <http://www.gnu.org/licenses/>.
+
+## Changelog and trusted source
+
+You can check the authenticity of new releases using my public key.
+
+Changelogs, instructions, sources and keys can be found at
+[blog.franco.net.eu.org/software/#restmesh](https://blog.franco.net.eu.org/software/#restmesh).
+
+## Git forge mirrors
+
+| URL | Type | Notes |
+|-----|------|-------|
+| https://github.com/frnmst/restmesh | RW | Official home |
+| https://codeberg.org/frnmst/restmesh | RW | Mirror |
+| https://framagit.org/frnmst/restmesh | RW | Mirror |
+| https://repos.franco.net.eu.org/frnmst/restmesh | RW | Mirror |
+
+## Support this project
+
+- [Buy Me a Coffee](https://www.buymeacoffee.com/frnmst)
+- [Liberapay](https://liberapay.com/frnmst)
+- [GitHub Sponsors](https://github.com/sponsors/frnmst)
 
 ## REST API reference
 
@@ -319,33 +450,36 @@ Adapter gateway.
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
+| regex_subst | [RegexSubst](#regexsubst-schema) or null |  | No |
 | version | string | Apprise JSON schema version | Yes |
 | title | string or null | Unused parameter | No |
-| message | string | UTF-8 text limited to the 237 byte Meshtastic MTU (200 here for safety) | Yes |
+| message | string | UTF-8 text to the mesh. This API limits it to 200 bytes for safety, although [the default Meshtastic MTU is 237 bytes](https://buf.build/meshtastic/protobufs/docs/86640f20db7b9b5be42949d18e8d96ad10d47a68%3Ameshtastic#meshtastic.Constants) | Yes |
 | type | string, <br>**Available values:** "info", "warning", "success", "failure" or null | Unused parameter | No |
 | attachment | [  ], <br>**Default:**  | Unused parameter | No |
-| want_ack | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery) | No |
+| want_ack | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery). [See this also](https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText) | No |
 | port_num | integer, <br>**Default:** 1 | Protobuf application port number | No |
 
 #### AppriseJsonNodeDirectPayload Schema
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
+| regex_subst | [RegexSubst](#regexsubst-schema) or null |  | No |
 | version | string | Apprise JSON schema version | Yes |
 | title | string or null | Unused parameter | No |
-| message | string | UTF-8 text limited to the 237 byte Meshtastic MTU (200 here for safety) | Yes |
+| message | string | UTF-8 text to the mesh. This API limits it to 200 bytes for safety, although [the default Meshtastic MTU is 237 bytes](https://buf.build/meshtastic/protobufs/docs/86640f20db7b9b5be42949d18e8d96ad10d47a68%3Ameshtastic#meshtastic.Constants) | Yes |
 | type | string, <br>**Available values:** "info", "warning", "success", "failure" or null | Unused parameter | No |
 | attachment | [  ], <br>**Default:**  | Unused parameter | No |
-| want_ack | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery) | No |
-| want_response | boolean, <br>**Default:** true | `true` if you want the service on the other side to send an application layer response | No |
+| want_ack | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery). [See this also](https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText) | No |
 | port_num | integer, <br>**Default:** 1 | Protobuf application port number | No |
+| want_response | boolean, <br>**Default:** true | `true` if you want the service on the other side to send an application layer response. [See this also](https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText) | No |
 
 #### ChannelBroadcastPayload Schema
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| text | string | UTF-8 text limited to the 237 byte Meshtastic MTU (200 here for safety) | Yes |
-| want_ack | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery) | No |
+| regex_subst | [RegexSubst](#regexsubst-schema) or null |  | No |
+| text | string | UTF-8 text to the mesh. This API limits it to 200 bytes for safety, although [the default Meshtastic MTU is 237 bytes](https://buf.build/meshtastic/protobufs/docs/86640f20db7b9b5be42949d18e8d96ad10d47a68%3Ameshtastic#meshtastic.Constants) | Yes |
+| want_ack | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery). [See this also](https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText) | No |
 | port_num | integer, <br>**Default:** 1 | Protobuf application port number | No |
 
 #### HTTPValidationError Schema
@@ -374,17 +508,18 @@ Adapter gateway.
 | channel | integer | The channel index (0 to 7) | Yes |
 | port_num | integer | Protobuf application port number | Yes |
 | text | string | The message sent to the mesh | Yes |
-| want_ack | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery) | No |
-| want_response | boolean, <br>**Default:** true | `true` if you want the service on the other side to send an application layer response | No |
+| want_ack | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery). [See this also](https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText) | No |
+| want_response | boolean, <br>**Default:** true | `true` if you want the service on the other side to send an application layer response. [See this also](https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText) | No |
 
 #### NodeDirectPayload Schema
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| text | string | UTF-8 text limited to the 237 byte Meshtastic MTU (200 here for safety) | Yes |
-| want_ack | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery) | No |
-| want_response | boolean, <br>**Default:** true | `true` if you want the service on the other side to send an application layer response | No |
+| regex_subst | [RegexSubst](#regexsubst-schema) or null |  | No |
+| text | string | UTF-8 text to the mesh. This API limits it to 200 bytes for safety, although [the default Meshtastic MTU is 237 bytes](https://buf.build/meshtastic/protobufs/docs/86640f20db7b9b5be42949d18e8d96ad10d47a68%3Ameshtastic#meshtastic.Constants) | Yes |
+| want_ack | boolean | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery). [See this also](https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText) | No |
 | port_num | integer, <br>**Default:** 1 | Protobuf application port number | No |
+| want_response | boolean, <br>**Default:** true | `true` if you want the service on the other side to send an application layer response. [See this also](https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText) | No |
 
 #### QueueErrorResponse Schema
 
@@ -398,6 +533,13 @@ Adapter gateway.
 | ---- | ---- | ----------- | -------- |
 | detail | string, <br>**Default:** Meshtastic radio problem |  | No |
 
+#### RegexSubst Schema
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| pattern | string | A regex pattern to be matched against | No |
+| subst | string | What to replace the regex pattern with | No |
+
 #### ValidationError Schema
 
 | Name | Type | Description | Required |
@@ -409,112 +551,3 @@ Adapter gateway.
 | ctx | object |  | No |
 
 <!-- END_API_DOCS -->
-
-## Integrations
-
-### Apprise
-
-restmesh accepts [Apprise](https://appriseit.com/) via the JSON schema. To be
-able to use it you need to
-[install it first](https://appriseit.com/getting-started/installation/).
-See also the [Repology](https://repology.org/projects/?search=apprise) page
-to see the available packages for Apprise.
-
-> [!NOTE]
-> The title parameter is ignored! Write your full text in the body.
-
-#### Channel
-
-Simple example using channel 0:
-
-```shell
-apprise -b 'My message here' "json://localhost:8000/api/v1/integrations/apprise/channels/0/messages"
-```
-
-With parameters:
-
-```shell
-apprise -b 'Hello world!' "json://localhost:8000/api/v1/integrations/apprise/channels/0/messages?:wantAck=false&:portNum=1"
-```
-
-#### Node
-
-Send a message to the node with hex id `!0a1b2c3d`. Alternatively you can use
-the decimal integer representation of the node id, without prepending the
-`!` character:
-
-```shell
-apprise -b 'My message here' "json://localhost:8000/api/v1/integrations/apprise/nodes/!0a1b2c3d/messages"
-
-apprise -b 'My message here' "json://localhost:8000/api/v1/integrations/apprise/nodes/169552957/messages"
-```
-
-With parameters:
-
-```shell
-apprise -b 'Hello world!' "json://localhost:8000/api/v1/integrations/apprise/nodes/!0a1b2c3d/messages?:wantResponse=true&wantAck=false&:portNum=1"
-
-apprise -b 'Hello world!' "json://localhost:8000/api/v1/integrations/apprise/nodes/169552957/messages?:wantResponse=true&wantAck=false&:portNum=1"
-```
-
-## Contributing
-
-See [Contributing](./CONTRIBUTING.md).
-
-## Responsible usage policy
-
-### Meshtastic
-
-In some places, such as Europe, the non-ham LoRa band has limited air time use.
-Please don't use restmesh for mass spamming, and never broadcast automated
-messages on public channels such as `MediumFast` or `LongFast`. Setup private
-channels instead.
-
-restmesh has a basic message FIFO queue also to mitigate the air time problem.
-
-## Consulting and custom integrations
-
-If you need help or custom endpoints and integrations, I'm available for
-contract-based freelance consulting and custom Python development:
-
-- Email: <solvecomputersciencecollabs+restmesh@gmail.com>
-- Freelancing: <https://blog.franco.net.eu.org/jobs/>
-
-## License
-
-Copyright (C) 2026 [Franco Masotti](https://blog.franco.net.eu.org/about/#contacts)
-
-restmesh is free software: you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation, either version 3 of the License, or (at your
-option) any later version.
-
-restmesh is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-more details.
-
-You should have received a copy of the GNU General Public License along
-with restmesh. If not, see <http://www.gnu.org/licenses/>.
-
-## Changelog and trusted source
-
-You can check the authenticity of new releases using my public key.
-
-Changelogs, instructions, sources and keys can be found at
-[blog.franco.net.eu.org/software/#restmesh](https://blog.franco.net.eu.org/software/#restmesh).
-
-## Git forge mirrors
-
-| URL | Type | Notes |
-|-----|------|-------|
-| https://github.com/frnmst/restmesh | RW | Official home |
-| https://codeberg.org/frnmst/restmesh | RW | Mirror |
-| https://framagit.org/frnmst/restmesh | RW | Mirror |
-| https://repos.franco.net.eu.org/frnmst/restmesh | RW | Mirror |
-
-## Support this project
-
-- [Buy Me a Coffee](https://www.buymeacoffee.com/frnmst)
-- [Liberapay](https://liberapay.com/frnmst)
-- [GitHub Sponsors](https://github.com/sponsors/frnmst)

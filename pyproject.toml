@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "restmesh"
-version = "0.3.0"
+version = "0.4.0"
 authors = [
     { name = "Franco Masotti", email = "franco.masotti@tutanota.com" },
 ]
@@ -36,7 +36,8 @@ requires-python = ">=3.11"
 dependencies = [
     "meshtastic>=2.7,<2.8",
     "fastapi>=0,<1",
-    "uvicorn>=0,<1"
+    "uvicorn>=0,<1",
+    "google-re2>=1,<2"
 ]
 classifiers = [
     # How mature is this project? Common values are

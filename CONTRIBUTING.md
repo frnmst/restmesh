@@ -77,6 +77,10 @@ project an LLM should be used as a more powerful search engine: that's it.
 Remember that LLMs have varying degrees of sycophancy so prompts must be
 adapted to mitigate that.
 
+This policy is similar to
+[Proposal E - Choice 5: Responsible Use of Generative AI](https://www.debian.org/vote/2026/vote_002#texte)
+voted by Debian in 2026.
+
 ### Commits
 
 No kind of automated AI agent can be involved, and all commits must be signed

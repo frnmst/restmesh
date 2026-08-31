@@ -39,6 +39,64 @@ def test_create_channel_text_message_ok_radio(client_radio_ok, mock_radio_ok):
     }
 
 
+# We only test regex subst here since the code is the same in each text_message
+# endpoint.
+@pytest.mark.parametrize('pattern', [
+    '.*Foo.*',
+    '\\s*Foo.*',
+])
+def test_create_channel_text_message_regexsubst_ok_radio(
+        client_radio_ok, mock_radio_ok, pattern):
+    response = client_radio_ok.post(
+        '/api/v1/channels/0/messages',
+        json={
+            'text': 'Foo',
+            'want_ack': False,
+            'port_num': 1,
+            'regex_subst': {
+                'pattern': pattern,
+                'subst': 'Bar'
+            },
+        },
+    )
+    assert response.status_code == status.HTTP_202_ACCEPTED
+    assert response.json() == {
+        'status': 'success',
+        'routing_mode': 'broadcast',
+        'packet': {
+            'id': 0,
+            'from': 0,
+            'to': 0,
+            'channel': 0,
+            'port_num': 1,
+            'text': 'Bar',
+            'want_ack': False,
+            'want_response': False
+        },
+        'on_response_callback_payload': None,
+        'truncated': False
+    }
+
+
+def test_create_channel_text_message_regexsubst_fail_ok_radio(
+        client_radio_ok, mock_radio_ok):
+    r"""Pass an invalid escape sequence in JSON to trigger an error."""
+    payload: str = r"""{
+        "text": "Foo",
+        "want_ack': False,
+        "port_num': 1,
+        "regex_subst": {
+            "pattern": ".*\s*Foo.*",
+            "subst": "Bar"
+        }
+    }"""
+    response = client_radio_ok.post(
+        '/api/v1/channels/0/messages',
+        content=payload,
+    )
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+
 @pytest.mark.parametrize('mock_radio_ok', [0x0], indirect=True)
 @pytest.mark.parametrize('valid_node_target', [
     '!00000000',

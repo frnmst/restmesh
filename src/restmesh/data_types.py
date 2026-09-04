@@ -143,7 +143,7 @@ WantAck = Annotated[
         strict=True,
         default=False,
         description=
-        '`true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery). [See this also](https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText)'
+        "`true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery). Meshtastic's firmware will handle the retries. will [See this also](https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText)"
     )]
 
 WantResponse = Annotated[

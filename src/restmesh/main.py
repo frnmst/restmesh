@@ -132,7 +132,7 @@ class CommonTextPayload(BaseModel):
 
 class SimpleCommonTextPayload(CommonTextPayload):
     text: data_types.TextMessagePayload
-    want_ack: data_types.WantAck = False
+    want_ack: data_types.WantAck = True
     port_num: data_types.PortNum = 1
 
 
@@ -141,7 +141,7 @@ class ChannelBroadcastPayload(SimpleCommonTextPayload):
 
 
 class NodeDirectPayload(SimpleCommonTextPayload):
-    want_response: data_types.WantResponse = True
+    want_response: data_types.WantResponse = False
 
 
 class AppriseCommonTextPayload(CommonTextPayload):
@@ -150,7 +150,7 @@ class AppriseCommonTextPayload(CommonTextPayload):
     message: data_types.TextMessagePayload
     type: data_types.AppriseNotificationType = 'info'
     attachment: list = Field(default=[], description='Unused parameter')
-    want_ack: data_types.WantAck = False
+    want_ack: data_types.WantAck = True
     port_num: data_types.PortNum = 1
 
 
@@ -159,7 +159,7 @@ class AppriseJsonChannelBroadcastPayload(AppriseCommonTextPayload):
 
 
 class AppriseJsonNodeDirectPayload(AppriseCommonTextPayload):
-    want_response: data_types.WantResponse = True
+    want_response: data_types.WantResponse = False
 
 
 # Response schemas.

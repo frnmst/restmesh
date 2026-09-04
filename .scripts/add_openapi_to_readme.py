@@ -8,7 +8,7 @@ import re
 
 
 def main():
-    readme_path = pathlib.Path('README.md')
+    readme_path = pathlib.Path('API.md')
     docs_path = pathlib.Path('openapi.md')
     openapi_path = pathlib.Path('openapi.json')
 

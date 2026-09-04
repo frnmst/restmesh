@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "restmesh"
-version = "0.4.0"
+version = "0.5.0"
 authors = [
     { name = "Franco Masotti", email = "franco.masotti@tutanota.com" },
 ]

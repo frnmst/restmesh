@@ -25,7 +25,7 @@ def test_create_channel_text_message_ok_radio(client_radio_ok, mock_radio_ok):
         'status': 'success',
         'routing_mode': 'broadcast',
         'packet': {
-            'id': 0,
+            'id': 12345,
             'from': 0,
             'to': 0,
             'channel': 0,
@@ -41,12 +41,13 @@ def test_create_channel_text_message_ok_radio(client_radio_ok, mock_radio_ok):
 
 # We only test regex subst here since the code is the same in each text_message
 # endpoint.
-@pytest.mark.parametrize('pattern', [
-    '.*Foo.*',
-    '\\s*Foo.*',
+@pytest.mark.parametrize('pattern_result', [
+    ['Bar', 'Foo'],
+    ['.*Foo.*', 'Bar'],
+    ['\\s*Foo.*', 'Bar'],
 ])
 def test_create_channel_text_message_regexsubst_ok_radio(
-        client_radio_ok, mock_radio_ok, pattern):
+        client_radio_ok, mock_radio_ok, pattern_result):
     response = client_radio_ok.post(
         '/api/v1/channels/0/messages',
         json={
@@ -54,7 +55,7 @@ def test_create_channel_text_message_regexsubst_ok_radio(
             'want_ack': False,
             'port_num': 1,
             'regex_subst': {
-                'pattern': pattern,
+                'pattern': pattern_result[0],
                 'subst': 'Bar'
             },
         },
@@ -64,12 +65,12 @@ def test_create_channel_text_message_regexsubst_ok_radio(
         'status': 'success',
         'routing_mode': 'broadcast',
         'packet': {
-            'id': 0,
+            'id': 12345,
             'from': 0,
             'to': 0,
             'channel': 0,
             'port_num': 1,
-            'text': 'Bar',
+            'text': pattern_result[1],
             'want_ack': False,
             'want_response': False
         },
@@ -117,14 +118,14 @@ def test_create_node_text_message_ok_radio(client_radio_ok, mock_radio_ok,
         'status': 'success',
         'routing_mode': 'direct',
         'packet': {
-            'id': 0,
+            'id': 12345,
             'from': 0,
             'to': 0,
             'channel': 0,
             'port_num': 1,
             'text': 'Foo',
             'want_ack': False,
-            'want_response': True
+            'want_response': False
         },
         'on_response_callback_payload': None,
         'truncated': False
@@ -176,13 +177,13 @@ def test_create_channel_text_message_minimal_ok_radio(client_radio_ok,
         'status': 'success',
         'routing_mode': 'broadcast',
         'packet': {
-            'id': 0,
+            'id': 12345,
             'from': 0,
             'to': 0,
             'channel': 0,
             'port_num': 1,
             'text': 'Foo',
-            'want_ack': False,
+            'want_ack': True,
             'want_response': False
         },
         'on_response_callback_payload': None,
@@ -235,7 +236,7 @@ def test_create_channel_text_message_truncated_ok_radio(
         'status': 'success',
         'routing_mode': 'broadcast',
         'packet': {
-            'id': 0,
+            'id': 12345,
             'from': 0,
             'to': 0,
             'channel': 0,
@@ -270,7 +271,7 @@ def test_create_node_text_message_truncated_ok_radio(client_radio_ok,
         'status': 'success',
         'routing_mode': 'direct',
         'packet': {
-            'id': 0,
+            'id': 12345,
             'from': 0,
             'to': 0,
             'channel': 0,
@@ -299,7 +300,7 @@ def test_create_channel_text_message_maximum_mtu_ok_radio(
         'status': 'success',
         'routing_mode': 'broadcast',
         'packet': {
-            'id': 0,
+            'id': 12345,
             'from': 0,
             'to': 0,
             'channel': 0,
@@ -334,7 +335,7 @@ def test_create_node_text_message_maximum_mtu_ok_radio(client_radio_ok,
         'status': 'success',
         'routing_mode': 'direct',
         'packet': {
-            'id': 0,
+            'id': 12345,
             'from': 0,
             'to': 0,
             'channel': 0,

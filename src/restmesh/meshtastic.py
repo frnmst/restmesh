@@ -33,17 +33,51 @@ async def meshtastic_packet_worker(app: FastAPI):
 
     while True:
         task: MessageQueueTask = await app.state.packet_queue.get()
+        p: dict = task.params
+
+        def handle_on_response(packet):
+            r"""Radio returned NAK or wantResponse was set to true, need to retry with new attempt."""
+            logging.info(f'NAK or wants response for packet {packet}')
+            routing_error: str = packet.get('decoded',
+                                            {}).get('routing', {}).get(
+                                                'errorReason', 'unknown')
+
+            if p['want_response'] and not p['want_ack']:
+                logging.info(
+                    'WantAck was set to false: unable to determine if packet was routed or not'
+                )
+            elif p['want_response'] and p[
+                    'want_ack'] and routing_error == 'NO_RESPONSE':
+                logging.info(
+                    'unable to determine if packet was routed or not (normal behavior)'
+                )
+                logging.debug(
+                    "Radio reports: 'NO_RESPONSE' but it's meaningless in this context"
+                )
+                logging.debug(
+                    'onResponse callback was called immediately because WantResponse=True so radio did not have time to correctly check for routing'
+                )
+            elif routing_error not in ['unknown', 'NONE']:
+                logging.warning(
+                    f"radio reports a routing error '{routing_error}' for packet id {packet.get('requestId', 0)}"
+                )
+                logging.debug('retry strategy not implemented')
+                # TODO
+                # Some kind of retry strategy could be implemented here by
+                # re-enqueueing the same packet and increasing the attempts
+                # counter.
 
         try:
             radio_interface = app.state.radio
             if radio_interface is None:
                 raise RuntimeError('Radio is still not ready. Retry later.')
 
-            p: dict = task.params
-
             # See:
             # https://meshtastic.org/docs/overview/mesh-algo/#layer-2-reliable-zero-hop-messaging
             # for wantAck.
+            # If WantAck is set, the following documentation from mesh.proto applies:
+            # This packet is being sent as a reliable message, we would prefer
+            # it to arrive at the destination. We would like to receive an ACK packet in response.
             raw_packet: meshtastic.protobuf.mesh_pb2.MeshPacket = radio_interface.sendText(
                 text=p['text'],
                 destinationId=p['destination_id'],
@@ -51,7 +85,10 @@ async def meshtastic_packet_worker(app: FastAPI):
                 wantResponse=p['want_response'],
                 channelIndex=p['channel_index'],
                 portNum=p['port_num'],
-                onResponse=None)
+                onResponse=handle_on_response)
+            # onResponse -- A closure of the form funct(packet), that will be
+            # called when a response packet arrives (or the transaction
+            # is NAKed due to non receipt)
 
             # Decode protobuf to Python dict.
             decoded_packet: dict[str, Any] = MessageToDict(
@@ -62,7 +99,7 @@ async def meshtastic_packet_worker(app: FastAPI):
             logging.info(f'{decoded_packet}')
             logging.info('')
 
-            packet_id: int = getattr(decoded_packet, 'id', 0)
+            packet_id: int = decoded_packet.get('id', 0)
             from_node_raw: int = getattr(decoded_packet, 'from_', 0)
             to_node_raw: int = getattr(decoded_packet, 'to', 0)
             channel_raw: int = getattr(decoded_packet, 'channel', 0)
@@ -75,21 +112,22 @@ async def meshtastic_packet_worker(app: FastAPI):
                 'port_num': p['port_num'],
                 'text': p['text'],
                 'want_ack': p['want_ack'],
-                'want_response': p['want_response']
+                'want_response': p['want_response'],
+                'attempts': p['attempts']
             }
 
             logging.info('radio returned:')
-            logging.info(f'  Packet transmitted with ID -> {packet_id}')
-            logging.info(f'  text                       -> \'{p["text"]}\'')
+            logging.info(f'  Packet transmitted with ID: {packet_id}')
+            logging.info(f'  text                      : \'{p["text"]}\'')
             logging.info(
-                f'  destinationId              -> {p["destination_id"]}')
-            logging.info(
-                f'  channelIndex               -> {p["channel_index"]}')
-            logging.info(f'  portNum                    -> {p["port_num"]}')
+                f'  destinationId             : {p["destination_id"]}')
+            logging.info(f'  channelIndex              : {p["channel_index"]}')
+            logging.info(f'  portNum                   : {p["port_num"]}')
             logging.info('')
 
-            # No callback data for the moment.
-            task.future.set_result((sent_packet, None))
+            if not task.future.done():
+                # No callback data for the moment.
+                task.future.set_result((sent_packet, None))
 
             # Do not overwhelm the mesh.
             # FIXME: there are probably better ways to do this.
@@ -171,7 +209,8 @@ async def meshtastic_send_text(
         'channel_index': channel_index,
         'want_ack': want_ack,
         'want_response': want_response,
-        'port_num': port_num
+        'port_num': port_num,
+        'attempts': 0,
     }
     task = MessageQueueTask(params)
     await app.state.packet_queue.put(task)

@@ -14,48 +14,31 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 A stateless thread-safe REST API for Meshtastic.
 
-[![image](./assets/restmesh_youtube_video_thumbnail.png)](https://www.youtube.com/watch?v=iHP0RuHrN70)
-
 <!--TOC-->
 
 - [restmesh](#restmesh)
+  - [Video](#video)
   - [Description and features](#description-and-features)
   - [Examples](#examples)
-    - [Home Assistant Web hook](#home-assistant-web-hook)
-    - [Error reporting: is Internet down?](#error-reporting-is-internet-down)
-    - [RSS/Atom feeds to mesh: weather warnings](#rssatom-feeds-to-mesh-weather-warnings)
   - [Quickstart](#quickstart)
-    - [One minute setup](#one-minute-setup)
-    - [CLI help](#cli-help)
-    - [Running](#running)
-      - [Defaults](#defaults)
-      - [Globally](#globally)
-    - [Use the Core API](#use-the-core-api)
+  - [BBS-Style commands](#bbs-style-commands)
   - [Integrations](#integrations)
-    - [Apprise](#apprise)
-      - [Channel](#channel)
-      - [Node](#node)
   - [REST API](#rest-api)
   - [Contributing](#contributing)
   - [Responsible usage policy](#responsible-usage-policy)
-    - [Meshtastic](#meshtastic)
   - [FAQ](#faq)
-    - [Why did you create restmesh?](#why-did-you-create-restmesh)
-    - [How do you write restmesh?](#how-do-you-write-restmesh)
-    - [Why the name restmesh?](#why-the-name-restmesh)
-    - [Is the objective of restmesh to replicate the official Meshtastic Python CLI 1:1?](#is-the-objective-of-restmesh-to-replicate-the-official-meshtastic-python-cli-11)
-    - [Does restmesh have a web UI besides Swagger's one?](#does-restmesh-have-a-web-ui-besides-swaggers-one)
-    - [Does restmesh manage incoming messages?](#does-restmesh-manage-incoming-messages)
-    - [Does restmesh support multiple radios at the same time?](#does-restmesh-support-multiple-radios-at-the-same-time)
-    - [Is there a retry strategy algorithm?](#is-there-a-retry-strategy-algorithm)
-    - [Does restmesh support sending other types of data?](#does-restmesh-support-sending-other-types-of-data)
   - [Consulting and custom integrations](#consulting-and-custom-integrations)
   - [License](#license)
-  - [Changelog and trusted source](#changelog-and-trusted-source)
   - [Git forge mirrors](#git-forge-mirrors)
   - [Support this project](#support-this-project)
 
 <!--TOC-->
+
+## Video
+
+[![YouTube video](./assets/restmesh_youtube_video_thumbnail.png)](https://www.youtube.com/watch?v=iHP0RuHrN70)
+<br>
+<sub>Click on the image to [play the video on YouTube](https://www.youtube.com/watch?v=iHP0RuHrN70)</sub>
 
 ## Description and features
 
@@ -127,6 +110,12 @@ post.
 
 ### One minute setup
 
+> [!WARNING]
+> Although you can install restmesh normally like any other Python package
+> with pipx, pip, etc, you should use the [safer method below](#safe-install)
+> if you are worried about
+> [supply-chain attacks](https://blog.pypi.org/posts/2026-04-02-incident-report-litellm-telnyx-supply-chain-attack/).
+
 1. install [pipx](https://pipx.pypa.io/latest/how-to/install-pipx.html)
 2. install restmesh
 
@@ -170,6 +159,38 @@ post.
 > The modem device may be different that the default one, `/dev/ttyUSB0`.
 > Check new devices with `dmesg`. In some cases it might be `/dev/ttyACM0`
 > instead. Naming depdends from different loaded kernel modules.
+
+### Safe install
+
+> [!IMPORTANT]
+> This prevents most attacks against this package. Checksums are signed with my
+> GPG key and compared to the ones stored on PyPI. Installation can complete
+> only if hashes and crypto signatures are valid. I can only make this workflow
+> available for this top level package, not for its dependencies. Read
+> [this post by Mike Gerwitz](https://mikegerwitz.com/2012/05/a-git-horror-story-repository-integrity-with-signed-commits).
+
+1. import my GPG public key:
+
+   ```shell
+   curl https://blog.franco.net.eu.org/pubkeys/pgp_pubkey_since_2019.txt | gpg --import
+   ```
+
+2. check its fingerprint and compare it with the one stored on DNS:
+
+   ```shell
+   gpg --list-keys --fingerprint
+   dig TXT franco.net.eu.org +short | grep 'public-key-git-sig-fingerprint'
+   ```
+
+   If in doubt, contact me privately to arrange a key exchange.
+
+3. run the [safe install script](./safe_install.sh) with Bash:
+
+   ```shell
+   ./safe_install.sh
+   ```
+
+4. follow the post-installation instructions from the one minute setup
 
 ### CLI help
 
@@ -237,6 +258,20 @@ curl -X 'POST' \
   "port_num": 1
 }'
 ```
+
+## BBS-Style commands
+
+Some very basic BBS commands are implemented. You have to send direct messages
+to the node connected to restmesh. Broadcast messages are ignored. All commands
+must start with `!` or `/` and are argument-less.
+
+| Name | Command | Description |
+|------|---------|-------------|
+| show help | any string that is not a command | prints the help |
+| API  | `!api` or `/api` | shows API name, version and credits |
+| help | `!help` or `/help` | prints the help |
+| MOTD | `!motd` or `/motd` | shows the set Message Of The Day. This will be settable via the API in future restmesh releases |
+| ping | `!ping` or `/ping` | node replies with `pong` |
 
 ## Integrations
 
@@ -393,13 +428,6 @@ more details.
 You should have received a copy of the GNU General Public License along
 with restmesh. If not, see <http://www.gnu.org/licenses/>.
 
-## Changelog and trusted source
-
-You can check the authenticity of new releases using my public key.
-
-Changelogs, instructions, sources and keys can be found at
-[blog.franco.net.eu.org/software/#restmesh](https://blog.franco.net.eu.org/software/#restmesh).
-
 ## Git forge mirrors
 
 | URL | Type | Notes |
@@ -411,6 +439,6 @@ Changelogs, instructions, sources and keys can be found at
 
 ## Support this project
 
+- [GitHub Sponsors](https://github.com/sponsors/frnmst)
 - [Buy Me a Coffee](https://www.buymeacoffee.com/frnmst)
 - [Liberapay](https://liberapay.com/frnmst)
-- [GitHub Sponsors](https://github.com/sponsors/frnmst)

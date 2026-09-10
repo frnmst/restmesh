@@ -7,34 +7,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 <!--TOC-->
 
 - [REST API reference](#rest-api-reference)
-  - [\[POST\] /api/v1/channels/{channel_index}/messages](#post-apiv1channelschannel_indexmessages)
-    - [Parameters](#parameters)
-    - [Request Body](#request-body)
-    - [Responses](#responses)
-  - [\[POST\] /api/v1/nodes/{node_target}/messages](#post-apiv1nodesnode_targetmessages)
-    - [Parameters](#parameters-1)
-    - [Request Body](#request-body-1)
-    - [Responses](#responses-1)
-  - [\[POST\] /api/v1/integrations/apprise/channels/{channel_index}/messages](#post-apiv1integrationsapprisechannelschannel_indexmessages)
-    - [Parameters](#parameters-2)
-    - [Request Body](#request-body-2)
-    - [Responses](#responses-2)
-  - [\[POST\] /api/v1/integrations/apprise/nodes/{node_target}/messages](#post-apiv1integrationsapprisenodesnode_targetmessages)
-    - [Parameters](#parameters-3)
-    - [Request Body](#request-body-3)
-    - [Responses](#responses-3)
-  - [Schemas](#schemas)
-    - [AppriseJsonChannelBroadcastPayload Schema](#apprisejsonchannelbroadcastpayload-schema)
-    - [AppriseJsonNodeDirectPayload Schema](#apprisejsonnodedirectpayload-schema)
-    - [ChannelBroadcastPayload Schema](#channelbroadcastpayload-schema)
-    - [HTTPValidationError Schema](#httpvalidationerror-schema)
-    - [MeshActionResponse Schema](#meshactionresponse-schema)
-    - [MeshPacketDetails Schema](#meshpacketdetails-schema)
-    - [NodeDirectPayload Schema](#nodedirectpayload-schema)
-    - [QueueErrorResponse Schema](#queueerrorresponse-schema)
-    - [RadioErrorResponse Schema](#radioerrorresponse-schema)
-    - [RegexSubst Schema](#regexsubst-schema)
-    - [ValidationError Schema](#validationerror-schema)
 
 <!--TOC-->
 
@@ -164,7 +136,7 @@ Adapter gateway.
 | version | string | Apprise JSON schema version | Yes |
 | title | string or null | Unused parameter | No |
 | message | string | UTF-8 text to the mesh. This API limits it to 200 bytes for safety, although [the default Meshtastic MTU is 237 bytes](https://buf.build/meshtastic/protobufs/docs/86640f20db7b9b5be42949d18e8d96ad10d47a68%3Ameshtastic#meshtastic.Constants) | Yes |
-| type | string, <br>**Available values:** "info", "warning", "success", "failure" or null | Unused parameter | No |
+| type | string, <br>**Available values:** "info", "warning", "success", "failure", "" or null | Unused parameter | No |
 | attachment | [  ], <br>**Default:**  | Unused parameter | No |
 | want_ack | boolean, <br>**Default:** true | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery). Meshtastic's firmware will handle the retries. will [See this also](https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText) | No |
 | port_num | integer, <br>**Default:** 1 | Protobuf application port number | No |
@@ -177,7 +149,7 @@ Adapter gateway.
 | version | string | Apprise JSON schema version | Yes |
 | title | string or null | Unused parameter | No |
 | message | string | UTF-8 text to the mesh. This API limits it to 200 bytes for safety, although [the default Meshtastic MTU is 237 bytes](https://buf.build/meshtastic/protobufs/docs/86640f20db7b9b5be42949d18e8d96ad10d47a68%3Ameshtastic#meshtastic.Constants) | Yes |
-| type | string, <br>**Available values:** "info", "warning", "success", "failure" or null | Unused parameter | No |
+| type | string, <br>**Available values:** "info", "warning", "success", "failure", "" or null | Unused parameter | No |
 | attachment | [  ], <br>**Default:**  | Unused parameter | No |
 | want_ack | boolean, <br>**Default:** true | `true` if you want the message sent in a reliable manner (with retries and ack/nak provided for delivery). Meshtastic's firmware will handle the retries. will [See this also](https://python.meshtastic.org/mesh_interface.html#meshtastic.mesh_interface.MeshInterface.sendText) | No |
 | port_num | integer, <br>**Default:** 1 | Protobuf application port number | No |

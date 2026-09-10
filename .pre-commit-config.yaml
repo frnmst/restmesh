@@ -24,12 +24,20 @@ repos:
       always_run: true
       pass_filenames: false
 
-    - id: add-to-readme
-      name: Add API documentation in README.md
+    - id: add-api-to-markdown
+      name: Add API documentation in API.md
       entry: python .scripts/add_openapi_to_readme.py
       language: system
       always_run: true
       pass_filenames: false
+
+    - id: generate-safe-install-script
+      name: Generate safe install script
+      entry: python .scripts/generate_safe_install_script.py
+      language: system
+      always_run: false
+      pass_filenames: false
+      files: ^dist/.*SUM\.txt$
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: 'v6.0.0'
@@ -104,7 +112,7 @@ repos:
   rev: '9.0.0'
   hooks:
     - id: md-toc
-      args: ['-p', 'cmark', '-l6']
+      args: ['-p', 'cmark', '-l2']
 
 - repo: https://github.com/jorisroovers/gitlint
   rev: 'v0.19.1'

@@ -443,3 +443,45 @@ def test_create_channel_message_generic_error(client_radio_ok, mock_radio_ok):
         'detail':
         'Local serial device communication failed. Check USB physical connection.'
     }
+
+
+################
+# Integrations #
+################
+@pytest.mark.parametrize(
+    'valid_payload',
+    [
+        # message, type, title, version, want_ack, port_num, attachment
+        ['Foo', 'info', '0', '', True, 1, []],
+        ['Foo', '', '', '', True, 1, []],
+    ])
+def test_integration_apprise_create_channel_text_message_ok_radio(
+        client_radio_ok, mock_radio_ok, valid_payload):
+    response = client_radio_ok.post(
+        '/api/v1/integrations/apprise/channels/0/messages',
+        json={
+            'message': valid_payload[0],
+            'type': valid_payload[1],
+            'title': valid_payload[2],
+            'version': valid_payload[3],
+            'want_ack': valid_payload[4],
+            'port_num': valid_payload[5]
+        },
+    )
+    assert response.status_code == status.HTTP_202_ACCEPTED
+    assert response.json() == {
+        'status': 'success',
+        'routing_mode': 'broadcast',
+        'packet': {
+            'id': 12345,
+            'from': 0,
+            'to': 0,
+            'channel': 0,
+            'port_num': 1,
+            'text': 'Foo',
+            'want_ack': True,
+            'want_response': False
+        },
+        'on_response_callback_payload': None,
+        'truncated': False
+    }

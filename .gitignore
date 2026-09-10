@@ -12,6 +12,7 @@ Dockerfile.python3.13_hatchling.build
 !CONTRIBUTING.md
 !SECURITY.md
 !API.md
+!CHANGELOG.md
 Makefile
 
 # Byte-compiled / optimized / DLL files

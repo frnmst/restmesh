@@ -161,7 +161,7 @@ AppriseJsonSchemaVersion = Annotated[
     str, Field(description='Apprise JSON schema version')]
 
 AppriseNotificationType = Annotated[
-    Literal['info', 'warning', 'success', 'failure'] | None,
+    Literal['info', 'warning', 'success', 'failure', ''] | None,
     Field(default='info', description='Unused parameter')]
 
 AppriseNotificationTitle = Annotated[

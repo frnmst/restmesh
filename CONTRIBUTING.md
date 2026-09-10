@@ -9,22 +9,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
 <!--TOC-->
 
 - [Contributing](#contributing)
-  - [Method](#method)
-    - [Unit tests](#unit-tests)
+  - [Git branches](#git-branches)
+  - [Pull requests](#pull-requests)
   - [Variable naming](#variable-naming)
-    - [JSON payload](#json-payload)
-    - [Data type annotations](#data-type-annotations)
   - [AI Policy](#ai-policy)
-    - [Commits](#commits)
-    - [Models](#models)
-    - [LLM codebase input](#llm-codebase-input)
-    - [Note](#note)
+  - [Note](#note)
 
 <!--TOC-->
 
 If you want to contribute, please follow these simple policies.
 
-## Method
+## Git branches
+
+- `master`: this branch is protected and only updated when a new release is
+   ready
+- `dev`: this is the main working branch, recent changes can be merged here
+
+## Pull requests
 
 1. add a new endpoint or fix
 2. add unit tests by mocking the radio
@@ -97,7 +98,7 @@ Please do not input this whole repository into an LLM and ask it to find
 vulnerabilities or to "improve the code". You may prompt specific code snippets
 if you are unsure about what they do.
 
-### Note
+## Note
 
 If these indications are not followed, your contribution cannot be merged in
 the codebase.

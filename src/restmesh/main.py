@@ -65,6 +65,10 @@ async def lifespan(app: FastAPI):
     # The modem device path.
     app.state.radio_serial_dev = MESHTASTIC_SERIAL_DEV
     app.state.running: bool = True
+
+    # Main event loop.
+    app.state.fastapi_loop = asyncio.get_running_loop()
+
     reconnect_task = asyncio.create_task(
         meshtastic.meshtastic_reconnector(app))
     app.state.packet_queue = asyncio.Queue(

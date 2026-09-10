@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import asyncio
+import importlib
 import logging
 from typing import Any
 
@@ -10,6 +11,7 @@ import meshtastic.serial_interface
 from fastapi import FastAPI
 from google.protobuf.json_format import MessageToDict
 from meshtastic.mesh_interface import MeshInterface
+from pubsub import pub
 
 from . import http_exceptions
 
@@ -26,10 +28,71 @@ class MessageQueueTask:
         )
 
 
+def reply_to_mesh_command(text_reply: str, app, destination_node: int):
+    r"""Send a reply to a mesh-received command."""
+    asyncio.run_coroutine_threadsafe(
+        meshtastic_send_text(app=app,
+                             text=text_reply,
+                             destination_id=destination_node,
+                             channel_index=0,
+                             want_ack=True,
+                             want_response=False,
+                             port_num=1), app.state.fastapi_loop)
+
+
+def onReceive(app, packet, interface):
+    r"""pub-sub on receive callback."""
+    logging.debug('packet received')
+    payload_object: dict = packet.get('decoded', {})
+    this_nodeinfo: dict = interface.getMyNodeInfo()
+
+    # Filter by texts.
+    if payload_object.get('portnum', '') == 'TEXT_MESSAGE_APP':
+        # Filter by node connected to this computer.
+        if packet.get('to', -1) == this_nodeinfo.get('num', -1):
+            logging.info(f'text packet sent to this node: {packet}')
+            text_message: str = payload_object.get('text', '').strip()
+
+            destination_node: int = packet.get('from', -1)
+            match text_message:
+                case '!help' | '/help':
+                    commands: str = '\n'.join(
+                        ['!api', '!help', '!motd', '!ping'])
+                    reply_to_mesh_command(commands, app, destination_node)
+                case '!api' | '/api':
+                    software_name: str = 'restmesh'
+                    software_meta: dict = importlib.metadata.metadata(
+                        software_name)
+                    software_home: str = software_meta['Project-URL'].replace(
+                        ',', ':')
+                    software_version: str = software_meta['Version']
+                    software_summary: str = software_meta['Summary']
+                    final_string: str = '\n'.join([
+                        f'API: {software_name} {software_version}',
+                        software_summary, f'{software_home}'
+                    ])
+                    reply_to_mesh_command(final_string, app, destination_node)
+                case '!motd' | '/motd':
+                    reply_to_mesh_command('MOTD: not implemented', app,
+                                          destination_node)
+                case '!ping' | '/ping':
+                    reply_to_mesh_command('pong', app, destination_node)
+                case _:
+                    commands: str = '\n'.join(
+                        ['commands:', '!api', '!help', '!motd', '!ping'])
+                    reply_to_mesh_command(commands, app, destination_node)
+                    logging.info(f'unknown command: {text_message}')
+
+
 async def meshtastic_packet_worker(app: FastAPI):
     r"""Manage outbound messages thread."""
-    logging.info(
-        'Meshtastic message sender (packet) background worker started')
+    logging.info('Meshtastic message packet background worker started')
+
+    # Enable receive commands.
+    def callback_wrapper(packet, interface):
+        onReceive(app, packet, interface)
+
+    pub.subscribe(callback_wrapper, 'meshtastic.receive')
 
     while True:
         task: MessageQueueTask = await app.state.packet_queue.get()

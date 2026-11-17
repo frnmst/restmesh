@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # Build stage.
-FROM python:3.13.18-slim-trixie@sha256:89dd1ca36cfd35fbd147ff94510bf50977fedfc4a7c6f73180c352a5d1fd0568 AS builder
+FROM python:3.13.18-slim-trixie@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90 AS builder
 
 WORKDIR /code
 
@@ -40,7 +40,7 @@ RUN pip install --require-hashes --no-deps --no-cache-dir --upgrade -r /code/pro
 #############
 # Run stage #
 #############
-FROM python:3.13.18-slim-trixie@sha256:89dd1ca36cfd35fbd147ff94510bf50977fedfc4a7c6f73180c352a5d1fd0568 AS runner
+FROM python:3.13.18-slim-trixie@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90 AS runner
 
 ENV PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH"

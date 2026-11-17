@@ -12,8 +12,9 @@ authors:
     family-names: Masotti
 repository-code: 'https://github.com/frnmst/restmesh'
 url: 'https://pypi.org/project/restmesh/'
-abstract: A stateless thread-safe REST API for Meshtastic.
-version: 0.2.0
+abstract: >-
+  A stateless thread-safe REST API for Meshtastic. restmesh uses FastAPI as backend, and integrates endpoints for notification software such as Apprise. A set of minimal BBS-style commands is also available.
+version: 0.7.0
 keywords:
   - meshtastic
   - fastapi

@@ -368,7 +368,8 @@ served as [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 
 ### Does restmesh manage incoming messages?
 
-Not yet, but something will be implemented.
+Yes, but only basic BBS-style commands for the moment.
+[See the relevant section](#bbs-style-commands).
 
 ### Does restmesh support multiple radios at the same time?
 

@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "restmesh"
-version = "0.6.0"
+dynamic = ["version"]
 authors = [
     { name = "Franco Masotti", email = "franco.masotti@tutanota.com" },
 ]
@@ -74,7 +74,7 @@ Homepage = "https://github.com/frnmst/restmesh"
 Documentation = "https://github.com/frnmst/restmesh"
 Repository = "https://github.com/frnmst/restmesh.git"
 Issues = "https://github.com/frnmst/restmesh/issues"
-Changelog = "https://github.com/frnmst/restmesh/CHANGELOG.md"
+Changelog = "https://github.com/frnmst/restmesh/blob/master/CHANGELOG.md"
 Funding = "https://github.com/frnmst/restmesh#support-this-project"
 
 [dependency-groups]
@@ -127,6 +127,9 @@ addopts = ["-ra", "-v", "--capture=no"]
 
 [tool.fastapi]
 entrypoint = "restmesh.main:app"
+
+[tool.hatch.version]
+path = "src/restmesh/__about__.py"
 
 # Contributing is required in the source dist. See:
 # https://www.pyopensci.org/python-package-guide/package-structure-code/python-package-distribution-files-sdist-wheel.html#what-is-a-source-distribution-sdist

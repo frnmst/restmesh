@@ -4,7 +4,6 @@
 
 import argparse
 import asyncio
-import importlib.metadata
 import logging
 from contextlib import asynccontextmanager
 from typing import Any, Optional
@@ -16,6 +15,7 @@ from fastapi import FastAPI, Request, status
 from pydantic import BaseModel, Field, model_validator
 
 from . import data_types, http_exceptions, meshtastic
+from .__about__ import __version__
 
 MESHTASTIC_SERIAL_DEV: str = '/dev/ttyUSB0'
 MESSAGE_QUEUE_SIZE_BEFORE_HTTP_429: int = 10
@@ -98,7 +98,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title='restmesh',
               description='Stateless thread-safe REST API for Meshtastic.',
-              version=importlib.metadata.version('restmesh'),
+              version=__version__,
               lifespan=lifespan)
 
 
@@ -291,7 +291,7 @@ async def apprise_gateway_adapter_send_text_node(
                               truncated=is_truncated)
 
 
-def cli():
+def cli(argv: list[str] | None = None):
     global MESHTASTIC_SERIAL_DEV
 
     parser = argparse.ArgumentParser(
@@ -299,7 +299,7 @@ def cli():
     parser.add_argument(
         '--version',
         action='version',
-        version=importlib.metadata.version('restmesh'),
+        version=__version__,
     )
     parser.add_argument(
         '--host',
@@ -318,11 +318,11 @@ def cli():
         f'path of the USB serial device radio (default: {MESHTASTIC_SERIAL_DEV})'
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     MESHTASTIC_SERIAL_DEV = args.radio_serial_path
 
-    logging.info(f'restmesh version {importlib.metadata.version("restmesh")}')
+    logging.info(f'restmesh version {__version__}')
     uvicorn.run('restmesh.main:app',
                 host=args.host,
                 port=args.port,

@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026-2026 Franco Masotti (See /README.md)
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+services:
+  restmesh:
+    image: restmesh
+    build:
+      context: .
+      dockerfile: Dockerfile
+      network: host
+    restart: always
+    devices:
+      # Pass the Meshtastic device on the left hand side.
+      - '/dev/ttyUSB0:/dev/ttyUSB0'
+    ports:
+      - '0.0.0.0:8000:8000'
+    group_add:
+      # Pass the same group as in the non-Docker documentation.
+      - 'dialout'

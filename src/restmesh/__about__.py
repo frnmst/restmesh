@@ -1,0 +1,5 @@
+# SPDX-FileCopyrightText: 2026-2026 Franco Masotti (See /README.md)
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+__version__ = '0.7.0'

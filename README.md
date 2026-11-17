@@ -108,7 +108,33 @@ post.
 
 ## Quickstart
 
-### One minute setup
+There are multiple ways to build and run restmesh. Using docker compose
+is the fastest and simplest one.
+
+### docker compose
+
+1. your user must have access to the modem. For example on Debian you have
+   to add your user to the `dialout` group (see [Modem device](#modem-device)):
+
+   ```shell
+   sudo usermod -aG dialout ${USER}
+   ```
+
+2. use the [docker compose file](./docker-compose.yml) to pull the image
+   from GitHub and run it:
+
+   ```shell
+   docker compose up --remove-orphans
+   ```
+
+   You can change the radio modem device path, listening ports, etc.
+
+3. connect to the [/docs](http://127.0.0.1:8000/docs) page using a browser
+
+> [!NOTE]
+> You can also build the Docker image yourself.
+
+### Manual one minute setup
 
 > [!WARNING]
 > Although you can install restmesh normally like any other Python package
@@ -124,7 +150,7 @@ post.
    ```
 
 3. your user must have access to the modem. For example on Debian you have
-   to add your user to the `dialout` group
+   to add your user to the `dialout` group (see [Modem device](#modem-device)):
 
    ```shell
    sudo usermod -aG dialout ${USER}
@@ -155,12 +181,7 @@ post.
    WantedBy=multi-user.target
    ```
 
-> [!IMPORTANT]
-> The modem device may be different that the default one, `/dev/ttyUSB0`.
-> Check new devices with `dmesg`. In some cases it might be `/dev/ttyACM0`
-> instead. Naming depdends from different loaded kernel modules.
-
-### Safe install
+### Manual safe install
 
 > [!IMPORTANT]
 > This prevents most attacks against this package. Checksums are signed with my
@@ -192,7 +213,17 @@ post.
 
 4. follow the post-installation instructions from the one minute setup
 
-### CLI help
+### Modem device
+
+> [!IMPORTANT]
+> The modem device may be different that the default one, `/dev/ttyUSB0`.
+> Check new devices with `dmesg`. In some cases it might be `/dev/ttyACM0`
+> instead. Naming depdends from different loaded kernel modules.
+
+
+### Running
+
+#### CLI help
 
 ```
 usage: restmesh [-h] [--version] [--host HOST] [--port PORT] [--radio-serial-path RADIO_SERIAL_PATH]
@@ -207,8 +238,6 @@ options:
   --radio-serial-path RADIO_SERIAL_PATH
                         path of the USB serial device radio (default: /dev/ttyUSB0)
 ```
-
-### Running
 
 #### Defaults
 

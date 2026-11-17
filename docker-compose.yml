@@ -4,17 +4,17 @@
 
 services:
   restmesh:
-    image: restmesh
+    image: ghcr.io/frnmst/restmesh:dev
     build:
       context: .
       dockerfile: Dockerfile
-      network: host
     restart: always
     devices:
-      # Pass the Meshtastic device on the left hand side.
+      # Pass the Meshtastic device on the left hand side. Keep `/dev/ttyUSB0`
+      # on the right.
       - '/dev/ttyUSB0:/dev/ttyUSB0'
     ports:
       - '0.0.0.0:8000:8000'
     group_add:
-      # Pass the same group as in the non-Docker documentation.
+      # Pass the correct group that has access to modem devices.
       - 'dialout'

@@ -4,7 +4,7 @@
 
 services:
   restmesh:
-    image: ghcr.io/frnmst/restmesh:dev
+    image: ghcr.io/frnmst/restmesh:master
     build:
       context: .
       dockerfile: Dockerfile
@@ -14,7 +14,9 @@ services:
       # on the right.
       - '/dev/ttyUSB0:/dev/ttyUSB0'
     ports:
+      # Keep port 8000 on the right.
       - '0.0.0.0:8000:8000'
     group_add:
       # Pass the correct group that has access to modem devices.
+      # On Debian GNU/Linux it's `dialout` by default.
       - 'dialout'

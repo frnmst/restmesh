@@ -109,7 +109,7 @@ post.
 ## Quickstart
 
 There are multiple ways to build and run restmesh. Using docker compose
-is the fastest and simplest one.
+is the fastest and simplest method.
 
 ### docker compose
 
